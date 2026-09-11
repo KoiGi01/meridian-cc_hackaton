@@ -32,7 +32,15 @@ To run the automated tests:
 pnpm test
 ```
 
-Everything should say passed. As of Checkpoint 1 there are 39 automated tests.
+Everything should say passed. As of Checkpoint 2 there are 74 automated tests.
+
+To start the **real third-party demo app** (added in Checkpoint 2):
+
+```bash
+pnpm --filter finefoods-antd dev:pointto
+```
+
+Then open **http://localhost:5190**. It needs an internet connection: it pulls live data from a public API that Refine hosts. Use `dev:pointto`, not `dev` — the app's own `dev` script hangs on Windows.
 
 ---
 
@@ -74,3 +82,67 @@ These are **not** bugs. They are things not built yet. Please do not file them.
 ### Found during this checkpoint
 
 One real bug, found by driving a real browser rather than trusting the automated tests: spotlighting anything below the fold lit up **nothing at all**, because the light was being clipped to the visible window and collapsed to zero size. The automated tests had missed it by pretending every element was already on screen. Fixed by scrolling the target into view first, and a test was added so it cannot come back silently. Check 1.2 is what guards it.
+
+---
+
+## Checkpoint 2 — Finding the right button, even after the app changes
+
+**Finished:** 2026-09-11
+
+**What was built.** Until now we told the tool *which element* to light by pointing straight at it. Now it is told only a name — `products.create` — and has to go find that thing on the page by itself.
+
+It does that with a **cascade**. Each element in the manifest lists several different ways to recognise it, strongest first: a test id, then its role and label, then its exact text, then its position in the page structure. The tool tries them in order and takes the first one that matches exactly one thing on screen.
+
+**What you are really testing.** That this survives the app changing underneath it. Real products get redesigned: buttons get renamed, attributes get dropped in refactors. A tour library that breaks when a label changes is worthless in practice. So the test page deliberately lets you sabotage the button and watch the tool find it anyway.
+
+And the other half, which matters just as much: **when it genuinely cannot find something, it must light nothing and say so.** Lighting the wrong button is far worse than admitting failure. If you ever see it point at something that is not what you asked for, that is the most serious bug you can report.
+
+![The spotlight finding the Add new product button inside the Refine admin app](img/phase2-demo-app-spotlight.png)
+
+### Part A — the rename-survival checks (test page, http://localhost:5173)
+
+Run `pnpm --filter playground dev`. The black readout box shows how it found the element. Watch that box change as you sabotage things.
+
+| # | What to do | What should happen | Pass / Fail |
+|---|---|---|---|
+| 2.1 | Click **Ask for "invite member"** | It scrolls to the Team settings box and lights the "Invite member" button. Readout says `anchor: testid`. | |
+| 2.2 | Tick **remove its test id**, then click **Ask for "invite member"** again | The *same button* still lights up. Readout now says `anchor: role-name`. | |
+| 2.3 | Also tick **rename the button** (it becomes "Add a teammate"), ask again | The same button *still* lights up, now labelled "Add a teammate". Readout says `anchor: css`. This is the headline result — the app changed twice and we never updated the manifest. | |
+| 2.4 | Also tick **delete it entirely**, ask again | Readout says `not found` and lists what it tried. **Nothing is lit at all.** | |
+| 2.5 | Untick everything and ask again | Back to `anchor: testid`. | |
+| 2.6 | Ask for the same element twice in a row, scrolling away in between | It scrolls back to the element the second time. (It used to do nothing — see below.) | |
+| 2.7 | Ask for "billing", then ask for "invite member" | The light moves. Only ever one thing is lit. | |
+
+### Part B — the real third-party app (http://localhost:5190)
+
+This is **Refine's open-source admin app**, which we did not write. We only mounted our widget into it. This is the part that shows this is a reusable library rather than a demo built to flatter itself.
+
+A small dark **pointto QA panel** sits in the bottom-right. It is scaffolding for testing and will be replaced by the real voice widget later.
+
+| # | What to do | What should happen | Pass / Fail |
+|---|---|---|---|
+| 2.8 | Open http://localhost:5190 and wait for the dashboard to load charts and a map | Real data appears. If it does not, check your internet — the data is fetched from Refine's public API. | |
+| 2.9 | Click **products.create** in the QA panel | The orange "Add new product" button lights up, everything else dims. Readout: `resolved via role-name`. | |
+| 2.10 | Click **products.nav**, **stores.nav**, **dashboard.nav**, **orders.nav** in turn | Each lights the matching item in the left sidebar. | |
+| 2.11 | While something is lit, click around the app normally — open a product, change a page | Everything still works. The dim never blocks you. | |
+| 2.12 | On the Products page, click **stores.create** | `not found`, and nothing lights up. Correct: that button only exists on the Stores page. | |
+| 2.13 | Go to **Stores** in the sidebar, then click **stores.create** | Now it lights the "Add new store" button. | |
+| 2.14 | Switch the app to dark mode (moon icon, top right), then spotlight something | Still works and is still readable. | |
+| 2.15 | Switch the language dropdown to German, then spotlight **products.create** | **Expected to fail to find it.** See below — this is a known limitation, not a bug. | |
+
+### Known and expected at this checkpoint
+
+Please do not file these.
+
+- **Changing the app's language breaks resolution** (check 2.15). Our anchors are written against the English labels, and translating the page changes them. The scanner and the manifest do not handle translated apps yet. Worth knowing, because the pitch talks about six-language support — that refers to the *user speaking* six languages, not the app's own UI being translated.
+- **Still no voice and no microphone.** The QA panel is a stand-in. You still cannot ask a question in words — that is the next checkpoints.
+- The QA panel is deliberately ugly. It is scaffolding, not product.
+- The manifest is hand-written by us. The tool that generates it automatically comes later.
+- The demo app depends on a public API that Refine hosts. If it is down, the app shows empty tables. Not our bug, but tell us if you see it often — it is a risk for judging day.
+- The demo app prints some console warnings about React versions. Those come from the upstream app's own dependencies.
+
+### Found during this checkpoint
+
+**A bug the automated tests could not see.** Asking for an element that was *already* lit did nothing at all — no scroll, no re-point. The cause: the code only reacted when the target *changed*, and re-asking for the same button is not a change. This matters a lot, because "ask, wander off, ask again" is exactly what people do. Caught by driving a real browser; fixed; check 2.6 guards it now.
+
+**A finding worth knowing.** The real Refine app has **no test ids anywhere**. Our schema treats test ids as the most reliable anchor, and a real application simply does not have them unless someone wrote end-to-end tests. Everything resolves through role-and-label instead — which worked for all six elements, at the strongest available level.
