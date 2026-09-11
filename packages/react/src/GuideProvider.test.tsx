@@ -147,6 +147,38 @@ describe('GuideProvider', () => {
     expect(document.querySelector('[data-pointto-root]')).toBeNull();
   });
 
+  // Regression: the first browser run rendered no cutout at all for a target
+  // below the fold, because the viewport clamp collapsed it to zero height.
+  // jsdom hid this by mocking getBoundingClientRect to a constant on-screen rect.
+  it('scrolls an off-screen target into view instead of silently lighting nothing', () => {
+    const scrollSpy = vi.fn();
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      () =>
+        ({
+          x: 10,
+          y: 5000,
+          width: 100,
+          height: 30,
+          top: 5000,
+          left: 10,
+          right: 110,
+          bottom: 5030,
+          toJSON: () => '',
+        }) as DOMRect,
+    );
+    // jsdom does not implement scrollIntoView at all, so there is nothing to spy on.
+    HTMLElement.prototype.scrollIntoView = scrollSpy;
+
+    render(
+      <GuideProvider>
+        <Harness />
+      </GuideProvider>,
+    );
+    act(() => screen.getByTestId('target').click());
+
+    expect(scrollSpy).toHaveBeenCalledWith(expect.objectContaining({ block: 'center' }));
+  });
+
   it('throws a useful error when useGuide is called outside the provider', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<Harness />)).toThrowError(/GuideProvider/);

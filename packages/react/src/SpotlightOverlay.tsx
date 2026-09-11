@@ -1,4 +1,4 @@
-import { computeCutout, observeRect, type Rect } from '@pointto/core';
+import { computeCutout, observeRect, scrollIntoViewIfNeeded, type Rect } from '@pointto/core';
 import { useEffect, useState } from 'react';
 import { OVERLAY_CSS } from './overlay-styles';
 
@@ -18,6 +18,9 @@ export function SpotlightOverlay({ target, zIndex, padding, radius, dimOpacity }
       setRect(null);
       return;
     }
+    // A target below the fold clamps to a zero-size cutout, so bring it into
+    // view before tracking it. observeRect then follows the scroll itself.
+    scrollIntoViewIfNeeded(target);
     return observeRect(target, setRect);
   }, [target]);
 
