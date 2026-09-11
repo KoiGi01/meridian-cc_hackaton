@@ -39,6 +39,11 @@ function accessibleName(el: Element): string {
     if (text.trim()) return text;
   }
 
+  // Inputs are commonly named only by their placeholder; browsers expose it
+  // as the accessible name, so the scanner sees it and we must match it.
+  const placeholder = el.getAttribute('placeholder');
+  if (placeholder && !(el.textContent ?? '').trim()) return placeholder;
+
   return el.textContent ?? '';
 }
 

@@ -51,7 +51,7 @@ const MAX_KEYTERMS = 60;
 function catalog(manifest: Manifest): string {
   const lines: string[] = [];
   for (const route of manifest.routes) {
-    lines.push(`Screen "${route.label}" (path ${route.path}):`);
+    lines.push(route.path === '*' ? `On every screen (${route.label}):` : `Screen "${route.label}" (path ${route.path}):`);
     for (const e of route.elements) {
       const flag = e.destructive ? ' [DESTRUCTIVE — ask the user to confirm before highlighting]' : '';
       const aliases = e.aliases.length ? ` Users may say: ${e.aliases.join('; ')}.` : '';
@@ -92,7 +92,7 @@ function keyterms(manifest: Manifest): string[] {
 export function buildSessionUpdate(manifest: Manifest, opts: SessionOptions = {}): SessionUpdate {
   const app = opts.appName ?? 'this application';
   const ids = manifest.routes.flatMap((r) => r.elements.map((e) => e.id));
-  const paths = manifest.routes.map((r) => r.path);
+  const paths = manifest.routes.map((r) => r.path).filter((p) => p !== '*');
 
   const system_prompt = [
     `You are an in-app guide for ${app}. The user is looking at the app right now and asks where things are or how to do something. You answer by POINTING: you call the highlight tool, which lights up the exact control on their screen, and then you tell them in one or two short sentences what it is.`,

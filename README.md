@@ -8,13 +8,11 @@ Built for the [AssemblyAI Voice Agent Hackathon](https://lablab.ai). MIT license
 
 ## Status
 
-**Checkpoint 4 of 9 complete** — voice. Press the mic, say *"how do I add a store?"*, and the app changes page, lights the button, and tells you what it is out loud. Built on the AssemblyAI Voice Agent API: one WebSocket for speech in, understanding, tool calls, and speech out.
+**Checkpoint 5 of 9 complete** — the scanner. `pointto-cli scan` opens your app in a headless browser, reads each screen's accessibility tree, and has Gemini describe every control. The demo app now runs on a **generated** manifest: 51 elements the scanner found in [Refine's admin app](https://github.com/refinedev/refine), labeled without anyone typing a word.
 
-Text still works without voice, offline, with no API key — that is the floor the product never drops below. With voice on, typed text goes through the same agent.
+Voice is in: press the mic, say *"how do I add a courier?"*, and the app changes page, lights the button, and tells you what it does — from a control the scanner discovered on its own.
 
-It runs against [Refine's open-source admin app](https://github.com/refinedev/refine), which we did not write — see [examples/demo-app/PROVENANCE.md](examples/demo-app/PROVENANCE.md).
-
-See [docs/QA-MANUAL.md](docs/QA-MANUAL.md) to test what exists today, and [BUILD-SPEC.md](BUILD-SPEC.md) for the full design.
+Text still works without voice, offline, with no API key. See [docs/QA-MANUAL.md](docs/QA-MANUAL.md) to test what exists today, and [BUILD-SPEC.md](BUILD-SPEC.md) for the full design.
 
 ![The widget answering "how do I add a product?" inside the Refine admin app](docs/img/phase3-text-widget.png)
 
@@ -56,7 +54,7 @@ Not published yet — that lands in a later checkpoint. Until then, this is a wo
 |---|---|
 | `pointto` | What you install. `GuideProvider`, widget, spotlight overlay, and the public types. |
 | `pointto-core` | Resolver, manifest schema, geometry. Framework-free; pulled in by `pointto` automatically. |
-| `pointto-cli` | `npx pointto-cli scan` — drives your app with Playwright and generates the manifest. Separate so its Playwright dependency stays out of your frontend install. Not built yet. |
+| `pointto-cli` | `npx pointto-cli scan --config guide.config.json` — drives your app with Playwright, reads the accessibility tree, and has an LLM label every control. Separate so its Playwright dependency stays out of your frontend install. `--no-llm` writes a skeleton to fill in by hand. |
 
 ```
 packages/     the published libraries
@@ -74,6 +72,7 @@ pnpm install
 pnpm --filter playground dev              # dev harness on http://localhost:5173
 pnpm --filter finefoods-antd dev:pointto  # third-party demo on http://localhost:5190
 pnpm dev:server                           # token server for voice, http://localhost:8787 (needs .env)
+node packages/cli/dist/index.js scan --config examples/demo-app/guide.config.json   # regenerate the demo manifest (needs GEMINI_API_KEY)
 pnpm test                                 # run the suite
 pnpm build                                # build all packages
 ```

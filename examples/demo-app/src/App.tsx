@@ -1,7 +1,7 @@
 import React from "react";
 // pointto: added by us. See PROVENANCE.md.
 import { GuideProvider, type Manifest } from "pointto";
-import pointtoManifest from "./pointto.manifest.json";
+import pointtoManifest from "./pointto.generated.manifest.json";
 import { Authenticated, Refine } from "@refinedev/core";
 import { RefineKbarProvider, RefineKbar } from "@refinedev/kbar";
 import {

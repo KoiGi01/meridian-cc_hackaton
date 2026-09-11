@@ -30,7 +30,8 @@ Use `dev:pointto`, never the demo app's own `dev` — `refine dev` hangs on Wind
 ```
 packages/core     manifest types + validator, geometry, rect tracking, resolver. NO React — enforced by no-react.test.ts.
 packages/react    published as `pointto`. GuideProvider / useGuide, GuideWidget, SpotlightOverlay, voice/VoiceSession.
-server/           token minting + event log. The ONLY place the API key is used. Node 22+ type-stripping, no deps.
+server/           token minting + event log. The ONLY place the AssemblyAI key is used. Node 22+ type-stripping, no deps.
+packages/cli      published as `pointto-cli`. Playwright scanner + labeler. Node-only; the only package allowed to hold Playwright or an LLM key.
 examples/playground   our own harness. Aliases pointto-* to source, so no build needed.
 examples/demo-app     THIRD-PARTY CODE (Refine finefoods-antd). See its PROVENANCE.md before editing anything.
 docs/             QA manual, specs, plans, screenshots.
@@ -52,6 +53,10 @@ Two things found the hard way against the live API: (1) typed text must ride in 
 
 **Test in English only.** The user asked for this; multilingual stays in the product but is not exercised.
 
+## Scanner (pointto-cli)
+
+`scan --config guide.config.json [--no-llm] [--headed]`. Pipeline: `config.ts` (validates, resolves `env:` values) → `scan.ts` (Playwright; `page.ariaSnapshot({ mode: 'ai' })` — `page.accessibility` no longer exists in 1.63; per ref, `locator('aria-ref=…').evaluate(collect)` gathers anchors the way the RUNTIME computes names) → `aria.ts` (parses the YAML; refs are `e12` on the first page and `f1e12` after any navigation) → `assemble.ts` (hoists elements present on every route into a shared `"*"` route that `guide()` never navigates for; drops pure-number/symbol names; validates with `parseManifest`) → `labeler.ts` (`OpenAICompatibleLabeler` with retries on 429/5xx, per-route fallback to skeleton). Gemini model names go stale: `gemini-2.5-flash` was rejected on 2026-09-11; `gemini-3.6-flash` works. A labeled scan of the demo takes ~10 min on the free tier.
+
 ## Things learned the hard way
 
 - **jsdom lies about layout.** Two real bugs passed the unit suite and only showed in a browser: a below-the-fold target rendered nothing (viewport clamp → zero cutout), and re-requesting an already-lit element was a silent no-op (effect keyed on target identity; React reuses the node). Both have regression tests now, but the rule stands: after any change to overlay or resolver behaviour, drive it in a real browser before calling it done.
@@ -60,6 +65,9 @@ Two things found the hard way against the live API: (1) typed text must ride in 
 - **Vendored from a release tag, not `main`.** Refine's `main` pins examples to unpublished workspace versions and will not install. Re-vendoring must use a `@refinedev/core@x.y.z` tag.
 - **Only `App.tsx` may change in `examples/demo-app`.** Mounting the provider is the one permitted edit. Do not reformat, lint-fix, or upgrade it. If the widget needs the host restructured, that is a bug in the widget.
 - **`vitest.config.ts` aliases `pointto-core` to source.** Otherwise a red-green cycle silently runs against the last `pnpm build`.
+- **Hosts replace DOM nodes after you resolve them.** Refine re-renders its table on data load after navigation; the lit node went detached and the light vanished. The provider now watches the DOM with a MutationObserver and re-resolves the same manifest element if the target leaves the document.
+- **Do not bulk-edit TypeScript with python/sed heredocs when the text has backslashes.** `` became a literal backspace byte, `
+` became a real newline. Use the Edit tool for anything with escapes.
 
 ## Product rules that will look like bugs
 
@@ -67,4 +75,4 @@ Non-negotiable, from BUILD-SPEC §6: the UI is never locked (only `destructive: 
 
 ## Not built yet
 
-Phases 5–9 of BUILD-SPEC §9: the Playwright + Gemini scanner CLI, drift detection (`awaitInteraction`, `reply.create` corrections), deploy + npm publish (the token server exists; it is not deployed), flows / linear tour, polish and demo video.
+Phases 6–9 of BUILD-SPEC §9: drift detection (`awaitInteraction`, `reply.create` corrections), deploy + npm publish (the token server exists; it is not deployed), flows / linear tour, polish and demo video.
