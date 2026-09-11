@@ -8,13 +8,13 @@ Built for the [AssemblyAI Voice Agent Hackathon](https://lablab.ai). MIT license
 
 ## Status
 
-**Checkpoint 2 of 9 complete** — the spotlight, and the resolver that finds an element from a manifest id. No voice yet.
+**Checkpoint 3 of 9 complete** — the product works end to end in text mode. Open the widget, type *how do I add a store?*, and the app changes page and lights the right button. No voice yet; that is the next checkpoint, and it drives exactly this same path.
 
-It runs against [Refine's open-source admin app](https://github.com/refinedev/refine), which we did not write — see [examples/demo-app/PROVENANCE.md](examples/demo-app/PROVENANCE.md). Delete the button's test id *and* rename its label, without regenerating the manifest, and it still points at the right control. Delete the element outright and it lights nothing and says so, because a wrong highlight is worse than an admitted failure.
+It runs against [Refine's open-source admin app](https://github.com/refinedev/refine), which we did not write — see [examples/demo-app/PROVENANCE.md](examples/demo-app/PROVENANCE.md). Rename a button without regenerating the manifest and it still finds it. Ask something it cannot map and it lights nothing and says so, because a wrong highlight is worse than an admitted failure.
 
 See [docs/QA-MANUAL.md](docs/QA-MANUAL.md) to test what exists today, and [BUILD-SPEC.md](BUILD-SPEC.md) for the full design.
 
-![The spotlight finding the Add new product button inside the Refine admin app](docs/img/phase2-demo-app-spotlight.png)
+![The widget answering "how do I add a product?" inside the Refine admin app](docs/img/phase3-text-widget.png)
 
 ## Why this is not a guided tour library
 

@@ -418,6 +418,38 @@ describe('GuideProvider', () => {
       expect(shadow()!.querySelector('[data-pointto-cutout]')).not.toBeNull();
     });
 
+    // Regression from the browser: after a successful ask, an unrelated follow-up
+    // said "couldn't find anything" while the previous element stayed lit. The
+    // agent's words and the light must never disagree.
+    it('ask() clears a previous light when the new question has no match', async () => {
+      function TwoAsks() {
+        const { ask } = useGuide();
+        return (
+          <div>
+            <button
+              data-testid="go"
+              onClick={async () => {
+                await ask('how do I invite someone?');
+                await ask('what is the weather');
+              }}
+            >
+              go
+            </button>
+            <button data-testid="invite-btn">Invite member</button>
+          </div>
+        );
+      }
+      render(
+        <GuideProvider manifest={twoRouteManifest} router={router.adapter} widget={false}>
+          <TwoAsks />
+        </GuideProvider>,
+      );
+      await act(async () => {
+        screen.getByTestId('go').click();
+      });
+      await waitFor(() => expect(shadow()!.querySelector('[data-pointto-cutout]')).toBeNull());
+    });
+
     it('ask() returns no-match and lights nothing for an unrelated question', async () => {
       render(
         <GuideProvider manifest={twoRouteManifest} router={router.adapter} widget={false}>

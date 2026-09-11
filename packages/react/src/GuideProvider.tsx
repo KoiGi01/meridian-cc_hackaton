@@ -165,6 +165,10 @@ export function GuideProvider({
 
   const ask = useCallback(
     async (query: string): Promise<AskResult> => {
+      // Whatever we say next, a light left over from an earlier question must
+      // not stay on. The words and the light never disagree.
+      setTarget(null);
+
       if (!manifest) return { status: 'no-match' };
       const matches = await intentRef.current.resolve(query, manifest);
       if (matches.length === 0) return { status: 'no-match' };

@@ -21,7 +21,7 @@ npm install -g pnpm     # only if `pnpm -v` fails
 pnpm install            # takes about 30 seconds
 ```
 
-Verified on a clean clone: `pnpm install` then `pnpm test` gives 74 passing tests.
+Verified on a clean clone: `pnpm install` then `pnpm test` gives 99 passing tests.
 
 To start the test page:
 
@@ -37,7 +37,7 @@ To run the automated tests:
 pnpm test
 ```
 
-Everything should say passed. As of Checkpoint 2 there are 74 automated tests.
+Everything should say passed. As of Checkpoint 3 there are 99 automated tests.
 
 To start the **real third-party demo app** (added in Checkpoint 2):
 
@@ -156,3 +156,60 @@ Please do not file these.
 **A bug the automated tests could not see.** Asking for an element that was *already* lit did nothing at all — no scroll, no re-point. The cause: the code only reacted when the target *changed*, and re-asking for the same button is not a change. This matters a lot, because "ask, wander off, ask again" is exactly what people do. Caught by driving a real browser; fixed; check 2.6 guards it now.
 
 **A finding worth knowing.** The real Refine app has **no test ids anywhere**. Our schema treats test ids as the most reliable anchor, and a real application simply does not have them unless someone wrote end-to-end tests. Everything resolves through role-and-label instead — which worked for all six elements, at the strongest available level.
+
+---
+
+## Checkpoint 3 — Ask it in plain words
+
+**Finished:** 2026-09-11
+
+**What was built.** The widget. There is now a round **?** button in the bottom-right corner of both apps. Open it, type a question like *how do I add a product?*, and the app takes you to the right screen — changing page if it has to — and lights up the button you need. This is the first checkpoint where the whole product works end to end. There is still no voice; this text box is what voice will drive underneath, and it is also the fallback for anyone who denies the microphone or is in a noisy office.
+
+**What you are really testing.** Three behaviours, in order of importance:
+
+1. **It never lights the wrong thing.** If it does not understand you, it says so and nothing lights. If two things could match, it *asks* instead of guessing.
+2. **It changes page for you when it needs to.** Ask about stores while you are on products, and you should end up on the stores page with the right button lit.
+3. **You can always get out.** The Exit button is always visible, and Escape always closes it.
+
+![The widget answering "how do I add a product?" inside the Refine admin app](img/phase3-text-widget.png)
+
+### The demo app (http://localhost:5190) — do this part first
+
+The QA panel from Checkpoint 2 is gone; the real widget replaced it.
+
+| # | What to do | What should happen | Pass / Fail |
+|---|---|---|---|
+| 3.1 | Go to **Products**. Click the **?** button bottom-right | A dark panel opens with a text box, an **Exit** button, and a short greeting. The text box has focus. | |
+| 3.2 | Type **how do I add a product?** and press Enter | The orange "Add new product" button lights up. The widget replies with what that button does. You stay on the Products page. | |
+| 3.3 | Still on Products, type **how do I add a store** | The page changes to **Stores** on its own, then "Add New Store" lights up. The reply starts with "Over here." | |
+| 3.4 | Type **what is the weather** | Reply says it couldn't find anything. **Nothing is lit** — including anything that was lit before. | |
+| 3.5 | Type **add new** | Reply says "Which of these do you mean?" with two clickable choices. Nothing is lit yet. | |
+| 3.6 | Click one of the two choices | It navigates if needed and lights that button. | |
+| 3.7 | Type **where are the orders** | The **Orders** item in the left sidebar lights up. | |
+| 3.8 | Press **Escape** | The panel closes, the dimming disappears, the **?** button stays. | |
+| 3.9 | Open it again and click **Exit** | Same as Escape. | |
+| 3.10 | With something lit, click anywhere else in the app — open a product, sort a column | Everything still works. The widget never blocks you. | |
+| 3.11 | Switch the app to **dark mode** (moon icon top right) and open the widget | The widget looks the same. The app's styling must not leak into it, or vice versa. | |
+| 3.12 | Make the browser window narrow (phone-ish width) | The panel shrinks to fit and never goes off the edge. | |
+| 3.13 | Type a question, then before it answers, press Escape | It closes cleanly with no error. | |
+
+### The test page (http://localhost:5173)
+
+The "Ask for" buttons from Checkpoint 2 are gone; use the widget. The break-the-manifest checkboxes still work.
+
+| # | What to do | What should happen | Pass / Fail |
+|---|---|---|---|
+| 3.14 | Open the widget, type **how do I invite someone?** | Scrolls to Team settings, lights "Invite member". Readout says `anchor: testid`. | |
+| 3.15 | Tick **rename the button**, ask again | Same button lights, now labelled "Add a teammate". Readout says `anchor: css` — the label changed, so it fell through to the position-based anchor. | |
+| 3.16 | Type **where is billing?** | Scrolls to Billing and lights "Manage billing". | |
+
+### Known and expected at this checkpoint
+
+- **English only.** The matcher understands English phrasing. *¿cómo agrego un producto?* will get "couldn't find anything." Multilingual understanding comes with the voice agent in the next checkpoint, which has a real language model behind it. This text matcher is deliberately simple: it works offline, with no API key, and it is the floor the product never drops below.
+- **It matches words, not meaning.** *how do I add a product* works because "add" and "product" are in the manifest. *how do I put a new dish on the menu* works too ("menu" is an alias). But a phrasing nobody anticipated may miss. Report anything that feels like it *should* have worked — those become new aliases.
+- **The widget panel can overlap a lit button** if the button is near the bottom-right corner. Cosmetic; on the list for the polish checkpoint.
+- Still no microphone. The widget deliberately never asks for one — there is an automated test asserting it does not.
+
+### Found during this checkpoint
+
+**A stale light.** After a successful question, asking something unrelated made the widget say "I couldn't find anything" — while the *previous* button stayed lit. The words and the light disagreed, which is the one thing this product must never do. Caught in the browser, fixed, and check 3.4 guards it. This is the third time a real bug passed the unit tests and only appeared in a real browser, which is why every checkpoint gets driven by hand before it is called done.
