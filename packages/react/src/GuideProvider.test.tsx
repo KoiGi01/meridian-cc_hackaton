@@ -1,6 +1,60 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GuideProvider, useGuide } from './GuideProvider';
+
+/** Two routes, so cross-route guidance can be exercised. */
+const twoRouteManifest = {
+  version: 1 as const,
+  generatedAt: '2026-09-12T00:00:00Z',
+  baseUrl: 'http://localhost:5173',
+  routes: [
+    {
+      path: '/',
+      label: 'Home',
+      elements: [
+        {
+          id: 'team.invite-member',
+          purpose: 'Opens the invite dialog',
+          aliases: ['invite someone', 'add a teammate'],
+          anchors: [
+            { kind: 'testid' as const, value: 'invite-btn', confidence: 1 },
+            { kind: 'text' as const, value: 'Invite member', confidence: 0.6 },
+          ],
+          destructive: false,
+        },
+      ],
+    },
+    {
+      path: '/stores',
+      label: 'Stores',
+      elements: [
+        {
+          id: 'stores.create',
+          purpose: 'Opens the form for adding a new store',
+          aliases: ['add a store', 'new store'],
+          anchors: [{ kind: 'text' as const, value: 'Add new store', confidence: 0.6 }],
+          destructive: false,
+        },
+      ],
+    },
+  ],
+};
+
+function makeRouter(start = '/') {
+  let path = start;
+  const calls: string[] = [];
+  return {
+    calls,
+    adapter: {
+      currentPath: () => path,
+      navigate: (p: string) => {
+        path = p;
+        calls.push(p);
+      },
+    },
+  };
+}
 
 const rect = { x: 10, y: 20, width: 100, height: 30 };
 
@@ -289,6 +343,189 @@ describe('GuideProvider', () => {
       );
       act(() => screen.getByTestId('ask').click());
       expect(screen.getByTestId('status').textContent).toBe('not-found');
+    });
+  });
+  describe('guide and ask', () => {
+    let router: ReturnType<typeof makeRouter>;
+    beforeEach(() => {
+      router = makeRouter('/');
+    });
+
+    function AskHarness({ q, id }: { q?: string; id?: string }) {
+      const { ask, guide } = useGuide();
+      const [out, setOut] = useState('');
+      return (
+        <div>
+          <button
+            data-testid="go"
+            onClick={async () => setOut(JSON.stringify(q ? await ask(q) : await guide(id!)))}
+          >
+            go
+          </button>
+          <pre data-testid="out">{out}</pre>
+          <button data-testid="invite-btn">Invite member</button>
+        </div>
+      );
+    }
+
+    it('guide() lights an element on the current route without navigating', async () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest} router={router.adapter} widget={false}>
+          <AskHarness id="team.invite-member" />
+        </GuideProvider>,
+      );
+      await act(async () => {
+        screen.getByTestId('go').click();
+      });
+      await waitFor(() => expect(screen.getByTestId('out').textContent).toContain('"resolved"'));
+      expect(router.calls).toEqual([]);
+    });
+
+    it('guide() navigates first when the element lives on another route', async () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest} router={router.adapter} widget={false}>
+          <AskHarness id="stores.create" />
+        </GuideProvider>,
+      );
+      await act(async () => {
+        screen.getByTestId('go').click();
+      });
+      await waitFor(() => expect(router.calls).toEqual(['/stores']));
+    });
+
+    it('guide() reports unknown-id for an id not in the manifest', async () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest} router={router.adapter} widget={false}>
+          <AskHarness id="nope" />
+        </GuideProvider>,
+      );
+      await act(async () => {
+        screen.getByTestId('go').click();
+      });
+      await waitFor(() => expect(screen.getByTestId('out').textContent).toContain('"unknown-id"'));
+    });
+
+    it('ask() maps a typed question to the element and lights it', async () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest} router={router.adapter} widget={false}>
+          <AskHarness q="how do I invite someone?" />
+        </GuideProvider>,
+      );
+      await act(async () => {
+        screen.getByTestId('go').click();
+      });
+      await waitFor(() => expect(screen.getByTestId('out').textContent).toContain('"guided"'));
+      expect(shadow()!.querySelector('[data-pointto-cutout]')).not.toBeNull();
+    });
+
+    it('ask() returns no-match and lights nothing for an unrelated question', async () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest} router={router.adapter} widget={false}>
+          <AskHarness q="what is the weather" />
+        </GuideProvider>,
+      );
+      await act(async () => {
+        screen.getByTestId('go').click();
+      });
+      await waitFor(() => expect(screen.getByTestId('out').textContent).toContain('"no-match"'));
+      expect(shadow()!.querySelector('[data-pointto-cutout]')).toBeNull();
+    });
+  });
+
+  describe('GuideWidget', () => {
+    function shadowEl(sel: string) {
+      return shadow()!.querySelector(sel) as HTMLElement | null;
+    }
+
+    it('starts closed with only the trigger visible', () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest}>
+          <div />
+        </GuideProvider>,
+      );
+      expect(shadowEl('[data-pointto-trigger]')).not.toBeNull();
+      expect(shadowEl('[data-pointto-panel]')).toBeNull();
+    });
+
+    it('opens on trigger click and closes on Escape', () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest}>
+          <div />
+        </GuideProvider>,
+      );
+      act(() => shadowEl('[data-pointto-trigger]')!.click());
+      expect(shadowEl('[data-pointto-panel]')).not.toBeNull();
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      });
+      expect(shadowEl('[data-pointto-panel]')).toBeNull();
+    });
+
+    it('always shows an exit control while open', () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest}>
+          <div />
+        </GuideProvider>,
+      );
+      act(() => shadowEl('[data-pointto-trigger]')!.click());
+      expect(shadowEl('[data-pointto-exit]')).not.toBeNull();
+    });
+
+    it('answers a typed question by lighting the element and replying with its purpose', async () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest}>
+          <button data-testid="invite-btn">Invite member</button>
+        </GuideProvider>,
+      );
+      act(() => shadowEl('[data-pointto-trigger]')!.click());
+      const input = shadowEl('[data-pointto-input]') as HTMLInputElement;
+      await act(async () => {
+        fireEvent.change(input, { target: { value: 'how do I invite someone' } });
+        fireEvent.submit(input.closest('form')!);
+      });
+      await waitFor(() =>
+        expect(shadowEl('[data-pointto-transcript]')!.textContent).toContain('Opens the invite dialog'),
+      );
+      expect(shadowEl('[data-pointto-cutout]')).not.toBeNull();
+    });
+
+    it('says it could not find it and lights nothing for an unrelated question', async () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest}>
+          <div />
+        </GuideProvider>,
+      );
+      act(() => shadowEl('[data-pointto-trigger]')!.click());
+      const input = shadowEl('[data-pointto-input]') as HTMLInputElement;
+      await act(async () => {
+        fireEvent.change(input, { target: { value: 'what is the weather' } });
+        fireEvent.submit(input.closest('form')!);
+      });
+      await waitFor(() =>
+        expect(shadowEl('[data-pointto-transcript]')!.textContent).toMatch(/couldn.t find/i),
+      );
+      expect(shadowEl('[data-pointto-cutout]')).toBeNull();
+    });
+
+    it('never touches the microphone', () => {
+      const getUserMedia = vi.fn();
+      vi.stubGlobal('navigator', { ...navigator, mediaDevices: { getUserMedia } });
+      render(
+        <GuideProvider manifest={twoRouteManifest}>
+          <div />
+        </GuideProvider>,
+      );
+      act(() => shadowEl('[data-pointto-trigger]')!.click());
+      expect(getUserMedia).not.toHaveBeenCalled();
+    });
+
+    it('can be disabled with widget={false}', () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest} widget={false}>
+          <div />
+        </GuideProvider>,
+      );
+      expect(shadowEl('[data-pointto-trigger]')).toBeNull();
     });
   });
 });
