@@ -10,13 +10,18 @@ A new section is added every time a development checkpoint is finished. Work thr
 
 ## Setting up, once
 
-You need [Node.js](https://nodejs.org) version 20 or newer.
+You need [Node.js](https://nodejs.org) version 20 or newer, and an internet connection.
 
 ```bash
+git clone https://github.com/KoiGi01/meridian-cc_hackaton.git
+cd meridian-cc_hackaton
+
 node -v                 # must print v20 or higher
 npm install -g pnpm     # only if `pnpm -v` fails
-pnpm install            # from the project root
+pnpm install            # takes about 30 seconds
 ```
+
+Verified on a clean clone: `pnpm install` then `pnpm test` gives 74 passing tests.
 
 To start the test page:
 
@@ -40,7 +45,12 @@ To start the **real third-party demo app** (added in Checkpoint 2):
 pnpm --filter finefoods-antd dev:pointto
 ```
 
-Then open **http://localhost:5190**. It needs an internet connection: it pulls live data from a public API that Refine hosts. Use `dev:pointto`, not `dev` — the app's own `dev` script hangs on Windows.
+Then open **http://localhost:5190**. The first run takes longer, because it builds our library first.
+
+Two things that will otherwise waste your time:
+
+- Use `dev:pointto`, **not** `dev`. The app's own `dev` script prints a banner and then hangs forever on Windows. That is upstream's script, not ours.
+- This app pulls live data from a public API that Refine hosts. **No internet, no data** — you will get a working page with empty tables.
 
 ---
 

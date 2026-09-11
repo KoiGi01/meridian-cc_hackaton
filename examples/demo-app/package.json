@@ -8,7 +8,8 @@
     "dev": "refine dev",
     "refine": "refine",
     "start": "cross-env DISABLE_ESLINT_PLUGIN=true refine start",
-    "dev:pointto": "vite --port 5190 --strictPort"
+    "dev:pointto": "vite --port 5190 --strictPort",
+    "predev:pointto": "pnpm --filter @pointto/core --filter @pointto/react build"
   },
   "browserslist": [
     ">0.2%",
