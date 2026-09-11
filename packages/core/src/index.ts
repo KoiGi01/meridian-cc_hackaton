@@ -10,3 +10,7 @@ export type { ResolveOutcome } from './resolve';
 export { waitForElement } from './wait-for-element';
 export { LexicalIntentResolver, tokenize } from './intent';
 export type { IntentMatch, IntentResolver } from './intent';
+export { buildSessionUpdate } from './agent-session';
+export type { SessionUpdate, SessionOptions, ToolDefinition } from './agent-session';
+export { ToolGate } from './tool-gate';
+export type { ToolResultFrame } from './tool-gate';
