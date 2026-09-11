@@ -9,7 +9,7 @@
     "refine": "refine",
     "start": "cross-env DISABLE_ESLINT_PLUGIN=true refine start",
     "dev:pointto": "vite --port 5190 --strictPort",
-    "predev:pointto": "pnpm --filter @pointto/core --filter @pointto/react build"
+    "predev:pointto": "pnpm --filter pointto-core --filter pointto build"
   },
   "browserslist": [
     ">0.2%",
@@ -49,8 +49,7 @@
     "react-router": "^7.0.2",
     "tslib": "^2.6.2",
     "usehooks-ts": "^2.14.0",
-    "@pointto/react": "workspace:*",
-    "@pointto/core": "workspace:*"
+    "pointto": "workspace:*"
   },
   "devDependencies": {
     "@types/google.maps": "^3.50.4",

@@ -9,8 +9,8 @@ export default defineConfig({
   server: { port: 5173 },
   resolve: {
     alias: {
-      '@pointto/core': fileURLToPath(new URL('../../packages/core/src/index.ts', import.meta.url)),
-      '@pointto/react': fileURLToPath(new URL('../../packages/react/src/index.ts', import.meta.url)),
+      'pointto-core': fileURLToPath(new URL('../../packages/core/src/index.ts', import.meta.url)),
+      'pointto': fileURLToPath(new URL('../../packages/react/src/index.ts', import.meta.url)),
     },
   },
 });

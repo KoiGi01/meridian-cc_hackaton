@@ -1,4 +1,4 @@
-import type { Manifest } from '@pointto/core';
+import type { Manifest } from 'pointto';
 
 /**
  * Hand-written, exactly as a developer would after reviewing what the scanner

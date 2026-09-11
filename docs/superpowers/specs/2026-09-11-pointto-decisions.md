@@ -1,20 +1,20 @@
-# Resolved decisions — @pointto
+# Resolved decisions — pointto
 
 Closes the open questions in [BUILD-SPEC.md](../../../BUILD-SPEC.md) §12. The build spec remains the design document; this records only what §12 left open.
 
-Date: 2026-09-11
+Date: 2026-09-11 (package naming revised the same day, see below)
 
 ## 1. Package name
 
-`@pointto` scope. Published packages:
+The product is **pointto**. The user-facing install is a single command, `npm install pointto`. Published packages:
 
-| Package | Contents |
-|---|---|
-| `@pointto/core` | Manifest types, anchor cascade resolver, intent matching. No React. |
-| `@pointto/react` | `GuideProvider`, widget, spotlight overlay. |
-| `@pointto/cli` | Playwright scanner + LLM labeling. |
+| Package | Contents | Who installs it |
+|---|---|---|
+| `pointto` | `GuideProvider`, widget, spotlight overlay. Re-exports the public types and `parseManifest`. | Every user. |
+| `pointto-core` | Manifest types, anchor cascade resolver, intent matching. No React. | Nobody directly — a dependency of `pointto`. Exists so the resolver stays framework-free for a future Vue adapter. |
+| `pointto-cli` | Playwright scanner + LLM labeling. `npx pointto-cli scan`. | Developers, once, at setup. Separate because it drags in Playwright and its browser binaries, which must not land in a frontend widget's install. |
 
-Verified free on npm 2026-09-11, as is the bare name `pointto`, which is parked as a placeholder pointing at the docs. Every unscoped candidate considered (`usher`, `docent`, `sherpa`, `wayfinder`, `signpost`, `guidepost`, `handrail`) was already published.
+**Revision history.** The first decision was the `@pointto/*` scope. Package-name checks showed `@pointto/core` etc. unpublished, but that only proves no *packages* exist — an npm **user or org** named `pointto` already does, and the scope could not be created. Unscoped `pointto`, `pointto-core`, `pointto-cli` were verified free on 2026-09-11 and chosen instead. Unscoped names are first-come, so a `0.0.1` should be published early to reserve them. Every other unscoped candidate considered (`usher`, `docent`, `sherpa`, `wayfinder`, `signpost`, `guidepost`, `handrail`) was already published.
 
 ## 2. Labeling LLM
 

@@ -1,4 +1,4 @@
-import { useGuide } from '@pointto/react';
+import { useGuide } from 'pointto';
 import { useState, type CSSProperties } from 'react';
 
 const panel: CSSProperties = {

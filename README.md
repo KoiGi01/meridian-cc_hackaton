@@ -31,13 +31,30 @@ Intro.js, Shepherd.js, WalkMe and Pendo are scripts: someone writes each step by
 
 **The agent guides, it does not click for you.** You keep control, and you learn where the feature lives.
 
+## Install
+
+```bash
+npm install pointto
+```
+
+```tsx
+import { GuideProvider } from 'pointto';
+import manifest from './pointto.manifest.json';
+
+<GuideProvider manifest={manifest}>
+  <App />
+</GuideProvider>
+```
+
+Not published yet — that lands in a later checkpoint. Until then, this is a workspace.
+
 ## Packages
 
 | Package | What it is |
 |---|---|
-| `@pointto/core` | Manifest types, element resolver, spotlight geometry. No framework dependency. |
-| `@pointto/react` | `GuideProvider`, widget, spotlight overlay. |
-| `@pointto/cli` | Scans a target app with Playwright and generates the manifest. Not built yet. |
+| `pointto` | What you install. `GuideProvider`, widget, spotlight overlay, and the public types. |
+| `pointto-core` | Resolver, manifest schema, geometry. Framework-free; pulled in by `pointto` automatically. |
+| `pointto-cli` | `npx pointto-cli scan` — drives your app with Playwright and generates the manifest. Separate so its Playwright dependency stays out of your frontend install. Not built yet. |
 
 ```
 packages/     the published libraries
