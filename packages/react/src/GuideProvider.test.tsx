@@ -560,4 +560,68 @@ describe('GuideProvider', () => {
       expect(shadowEl('[data-pointto-trigger]')).toBeNull();
     });
   });
+  describe('voice', () => {
+    function shadowEl(sel: string) {
+      return shadow()!.querySelector(sel) as HTMLElement | null;
+    }
+    const voice = { tokenEndpoint: 'http://localhost:8787/api/voice/token' };
+
+    it('shows no mic button without voice config', () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest}>
+          <div />
+        </GuideProvider>,
+      );
+      act(() => shadowEl('[data-pointto-trigger]')!.click());
+      expect(shadowEl('[data-pointto-mic]')).toBeNull();
+    });
+
+    it('shows a mic button with voice config, and still never opens the mic just by opening the widget', () => {
+      const getUserMedia = vi.fn();
+      vi.stubGlobal('navigator', { ...navigator, mediaDevices: { getUserMedia } });
+      render(
+        <GuideProvider manifest={twoRouteManifest} voice={voice}>
+          <div />
+        </GuideProvider>,
+      );
+      act(() => shadowEl('[data-pointto-trigger]')!.click());
+      expect(shadowEl('[data-pointto-mic]')).not.toBeNull();
+      expect(getUserMedia).not.toHaveBeenCalled();
+    });
+
+    it('exposes voiceEnabled only when both manifest and voice config exist', () => {
+      let enabled: boolean | undefined;
+      function Probe() {
+        enabled = useGuide().voiceEnabled;
+        return null;
+      }
+      render(
+        <GuideProvider voice={voice}>
+          <Probe />
+        </GuideProvider>,
+      );
+      expect(enabled).toBe(false);
+      render(
+        <GuideProvider manifest={twoRouteManifest} voice={voice}>
+          <Probe />
+        </GuideProvider>,
+      );
+      expect(enabled).toBe(true);
+    });
+
+    it('sendText returns false when no session is open, so text falls back to the local resolver', () => {
+      let result: boolean | undefined;
+      function Probe() {
+        const { sendText } = useGuide();
+        return <button data-testid="t" onClick={() => (result = sendText('hi'))} />;
+      }
+      render(
+        <GuideProvider manifest={twoRouteManifest} voice={voice}>
+          <Probe />
+        </GuideProvider>,
+      );
+      act(() => screen.getByTestId('t').click());
+      expect(result).toBe(false);
+    });
+  });
 });
