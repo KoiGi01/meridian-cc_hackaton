@@ -8,9 +8,11 @@ Built for the [AssemblyAI Voice Agent Hackathon](https://lablab.ai). MIT license
 
 ## Status
 
-**Checkpoint 3 of 9 complete** — the product works end to end in text mode. Open the widget, type *how do I add a store?*, and the app changes page and lights the right button. No voice yet; that is the next checkpoint, and it drives exactly this same path.
+**Checkpoint 4 of 9 complete** — voice. Press the mic, say *"how do I add a store?"*, and the app changes page, lights the button, and tells you what it is out loud. Built on the AssemblyAI Voice Agent API: one WebSocket for speech in, understanding, tool calls, and speech out.
 
-It runs against [Refine's open-source admin app](https://github.com/refinedev/refine), which we did not write — see [examples/demo-app/PROVENANCE.md](examples/demo-app/PROVENANCE.md). Rename a button without regenerating the manifest and it still finds it. Ask something it cannot map and it lights nothing and says so, because a wrong highlight is worse than an admitted failure.
+Text still works without voice, offline, with no API key — that is the floor the product never drops below. With voice on, typed text goes through the same agent.
+
+It runs against [Refine's open-source admin app](https://github.com/refinedev/refine), which we did not write — see [examples/demo-app/PROVENANCE.md](examples/demo-app/PROVENANCE.md).
 
 See [docs/QA-MANUAL.md](docs/QA-MANUAL.md) to test what exists today, and [BUILD-SPEC.md](BUILD-SPEC.md) for the full design.
 
@@ -71,6 +73,7 @@ Requires Node 20+ and pnpm.
 pnpm install
 pnpm --filter playground dev              # dev harness on http://localhost:5173
 pnpm --filter finefoods-antd dev:pointto  # third-party demo on http://localhost:5190
+pnpm dev:server                           # token server for voice, http://localhost:8787 (needs .env)
 pnpm test                                 # run the suite
 pnpm build                                # build all packages
 ```

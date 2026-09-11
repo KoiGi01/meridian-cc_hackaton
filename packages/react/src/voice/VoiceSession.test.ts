@@ -163,6 +163,9 @@ describe('VoiceSession', () => {
     const t = ws.types();
     expect(t.slice(-2)).toEqual(['conversation.message', 'reply.create']);
     expect(ws.sent.at(-2)).toMatchObject({ role: 'user', content: 'how do I add a store' });
+    // The text rides in the instructions too: a bare reply.create did not
+    // reliably act on the injected message against the live API.
+    expect(String(ws.sent.at(-1)!.instructions)).toContain('how do I add a store');
   });
 
   it('ends the session cleanly and releases the microphone', async () => {

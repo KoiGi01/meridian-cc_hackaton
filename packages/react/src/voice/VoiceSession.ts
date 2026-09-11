@@ -69,7 +69,7 @@ export class VoiceSession {
       const ws = new WebSocket(`${AGENT_WS}?token=${encodeURIComponent(token)}`);
       this.ws = ws;
       ws.onopen = () => {
-        this.send(this.opts.sessionUpdate);
+        this.send(this.opts.sessionUpdate as unknown as Record<string, unknown>);
         resolve();
       };
       ws.onmessage = (e) => this.onFrame(JSON.parse(e.data as string) as AgentEvent);
@@ -85,8 +85,15 @@ export class VoiceSession {
 
   /** Text in, through the same agent: it understands intent and any language. */
   sendText(text: string): void {
+    // conversation.message puts the text in history. Empirically (2026-09-11)
+    // a bare reply.create afterwards does not reliably see it: the agent
+    // answered as if nothing was asked. Carrying the text in `instructions`
+    // makes the model act on it every time.
     this.send({ type: 'conversation.message', role: 'user', content: text });
-    this.send({ type: 'reply.create' });
+    this.send({
+      type: 'reply.create',
+      instructions: `The user just typed: "${text.replace(/"/g, "'")}". Respond to that request now, following your rules. Reply in the same language the user typed in.`,
+    });
   }
 
   stop(): void {

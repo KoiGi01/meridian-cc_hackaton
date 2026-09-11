@@ -20,6 +20,7 @@ pnpm vitest run packages/core/src/resolve.test.ts   # one file
 pnpm build                                # tsup, ESM + CJS + d.ts for packages/*
 pnpm --filter playground dev              # dev harness, http://localhost:5173
 pnpm --filter finefoods-antd dev:pointto  # vendored Refine demo, http://localhost:5190
+pnpm dev:server                           # token server, http://localhost:8787 — reads ASSEMBLYAI_API_KEY from .env
 ```
 
 Use `dev:pointto`, never the demo app's own `dev` — `refine dev` hangs on Windows. `dev:pointto` has a `predev` hook that builds the packages first, because the demo app consumes `dist/` and `dist/` is gitignored.
@@ -28,7 +29,8 @@ Use `dev:pointto`, never the demo app's own `dev` — `refine dev` hangs on Wind
 
 ```
 packages/core     manifest types + validator, geometry, rect tracking, resolver. NO React — enforced by no-react.test.ts.
-packages/react    GuideProvider / useGuide, SpotlightOverlay in Shadow DOM.
+packages/react    published as `pointto`. GuideProvider / useGuide, GuideWidget, SpotlightOverlay, voice/VoiceSession.
+server/           token minting + event log. The ONLY place the API key is used. Node 22+ type-stripping, no deps.
 examples/playground   our own harness. Aliases pointto-* to source, so no build needed.
 examples/demo-app     THIRD-PARTY CODE (Refine finefoods-antd). See its PROVENANCE.md before editing anything.
 docs/             QA manual, specs, plans, screenshots.
@@ -39,6 +41,16 @@ docs/             QA manual, specs, plans, screenshots.
 `GuideProvider` owns one `target: HTMLElement | null`. `spotlightId(id)` looks the id up in the manifest, runs `resolveElement` from core, sets the target, and returns a `ResolveOutcome` — a value, never a throw, because the voice agent will call this as a tool and must be able to say "I can't find that" out loud. `SpotlightOverlay` scrolls the target into view, tracks its rect via `observeRect`, computes a cutout, and renders a single fixed `div` whose 9999px `box-shadow` is the dim. The overlay is `pointer-events: none`; the host UI is never blocked.
 
 `resolveElement` walks an element's anchors most-durable-first (`testid` → `role-name` → `text` → `css`) and takes the first that matches exactly one visible element. Unique-from-weak beats ambiguous-from-strong. No match returns `not-found` — a wrong highlight is worse than an admitted failure. The outcome reports which anchor won; that is the telemetry for manifest brittleness.
+
+## Voice (AssemblyAI Voice Agent API)
+
+Facts verified live 2026-09-11 and snapshotted in `docs/superpowers/specs/assemblyai-agent-instructions-2026-09-11.md`; the table in `docs/superpowers/plans/2026-09-11-phase4-voice.md` is the quick reference. Re-fetch `https://www.assemblyai.com/docs/agent-instructions.md` before changing anything in `voice/` or `agent-session.ts`.
+
+`buildSessionUpdate(manifest)` in core produces the exact `session.update` JSON (system prompt with the element catalog, keyterms, flat-schema tools). `ToolGate` enforces "send `tool.result` only when `reply.done` is the latest event". `VoiceSession` in react does token → socket → mic-after-ready → audio both ways. The provider owns tool dispatch (`highlight` → `guide()`).
+
+Two things found the hard way against the live API: (1) typed text must ride in `reply.create.instructions`, not just `conversation.message` — a bare `reply.create` replied as if nothing was asked; (2) the prompt must make `highlight` the unambiguous first action, or the model hedges with `get_current_context` and loses the thread.
+
+**Test in English only.** The user asked for this; multilingual stays in the product but is not exercised.
 
 ## Things learned the hard way
 
@@ -55,4 +67,4 @@ Non-negotiable, from BUILD-SPEC §6: the UI is never locked (only `destructive: 
 
 ## Not built yet
 
-Phases 3–9 of BUILD-SPEC §9: text-mode intent (the safety net), voice via AssemblyAI Voice Agent API, the Playwright + Gemini scanner CLI, drift detection, token server + deploy + npm publish, flows / linear tour, polish and demo video. Fetch `https://www.assemblyai.com/docs/agent-instructions.md` before writing any AssemblyAI code; model and event names in training data are stale.
+Phases 5–9 of BUILD-SPEC §9: the Playwright + Gemini scanner CLI, drift detection (`awaitInteraction`, `reply.create` corrections), deploy + npm publish (the token server exists; it is not deployed), flows / linear tour, polish and demo video.

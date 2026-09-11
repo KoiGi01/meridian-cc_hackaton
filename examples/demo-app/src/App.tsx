@@ -73,7 +73,10 @@ const App: React.FC = () => {
 
   return (
     // pointto: the only modification to this third-party file. See PROVENANCE.md.
-    <GuideProvider manifest={pointtoManifest as Manifest}>
+    <GuideProvider
+      manifest={pointtoManifest as Manifest}
+      voice={{ tokenEndpoint: "http://localhost:8787/api/voice/token", appName: "the Finefoods admin" }}
+    >
       <BrowserRouter>
         <ConfigProvider>
         <RefineKbarProvider>
