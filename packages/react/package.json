@@ -1,5 +1,5 @@
 {
-  "name": "@pointto/react",
+  "name": "pointto",
   "version": "0.0.1",
   "description": "React provider, widget, and spotlight overlay for pointto.",
   "license": "MIT",
@@ -17,7 +17,7 @@
   "files": ["dist"],
   "scripts": { "build": "tsup" },
   "peerDependencies": { "react": ">=18", "react-dom": ">=18" },
-  "dependencies": { "@pointto/core": "workspace:*" },
+  "dependencies": { "pointto-core": "workspace:*" },
   "devDependencies": {
     "@testing-library/react": "^16.0.0",
     "@types/react": "^18.3.0",

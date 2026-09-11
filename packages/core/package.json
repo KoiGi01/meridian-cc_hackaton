@@ -1,5 +1,5 @@
 {
-  "name": "@pointto/core",
+  "name": "pointto-core",
   "version": "0.0.1",
   "description": "Framework-agnostic resolver, manifest types, and spotlight geometry for pointto.",
   "license": "MIT",

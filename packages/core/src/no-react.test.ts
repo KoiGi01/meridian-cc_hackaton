@@ -12,7 +12,7 @@ function sourceFiles(dir: string): string[] {
   );
 }
 
-describe('@pointto/core framework independence', () => {
+describe('pointto-core framework independence', () => {
   it('never imports react', () => {
     const offenders = sourceFiles(import.meta.dirname).filter((f) =>
       /from ['"]react/.test(readFileSync(f, 'utf8')),

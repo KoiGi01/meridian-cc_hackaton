@@ -29,7 +29,7 @@ Use `dev:pointto`, never the demo app's own `dev` — `refine dev` hangs on Wind
 ```
 packages/core     manifest types + validator, geometry, rect tracking, resolver. NO React — enforced by no-react.test.ts.
 packages/react    GuideProvider / useGuide, SpotlightOverlay in Shadow DOM.
-examples/playground   our own harness. Aliases @pointto/* to source, so no build needed.
+examples/playground   our own harness. Aliases pointto-* to source, so no build needed.
 examples/demo-app     THIRD-PARTY CODE (Refine finefoods-antd). See its PROVENANCE.md before editing anything.
 docs/             QA manual, specs, plans, screenshots.
 ```
@@ -47,7 +47,7 @@ docs/             QA manual, specs, plans, screenshots.
 - **The demo app is on React 19; the playground and our devDeps are on 18.** Our peer range is `>=18`. Keep it that way — it is a live check that the library is not secretly 18-only.
 - **Vendored from a release tag, not `main`.** Refine's `main` pins examples to unpublished workspace versions and will not install. Re-vendoring must use a `@refinedev/core@x.y.z` tag.
 - **Only `App.tsx` may change in `examples/demo-app`.** Mounting the provider is the one permitted edit. Do not reformat, lint-fix, or upgrade it. If the widget needs the host restructured, that is a bug in the widget.
-- **`vitest.config.ts` aliases `@pointto/core` to source.** Otherwise a red-green cycle silently runs against the last `pnpm build`.
+- **`vitest.config.ts` aliases `pointto-core` to source.** Otherwise a red-green cycle silently runs against the last `pnpm build`.
 
 ## Product rules that will look like bugs
 

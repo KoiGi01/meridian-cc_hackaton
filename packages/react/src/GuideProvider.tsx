@@ -3,7 +3,7 @@ import {
   resolveElement,
   type Manifest,
   type ResolveOutcome,
-} from '@pointto/core';
+} from 'pointto-core';
 import {
   createContext,
   useCallback,

@@ -1,4 +1,4 @@
-import { useGuide } from "@pointto/react";
+import { useGuide } from "pointto";
 import { useState } from "react";
 
 /**

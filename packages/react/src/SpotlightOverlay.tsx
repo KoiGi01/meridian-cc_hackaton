@@ -1,4 +1,4 @@
-import { computeCutout, observeRect, scrollIntoViewIfNeeded, type Rect } from '@pointto/core';
+import { computeCutout, observeRect, scrollIntoViewIfNeeded, type Rect } from 'pointto-core';
 import { useEffect, useState } from 'react';
 import { OVERLAY_CSS } from './overlay-styles';
 

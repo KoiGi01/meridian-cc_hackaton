@@ -27,7 +27,7 @@ The only permitted modification is mounting our `GuideProvider`, plus the manife
 - `src/App.tsx` — wrapped the application in `<GuideProvider>` and mounted the QA panel. Two import lines and two wrapper elements; nothing else in the file was touched.
 - `src/pointto.manifest.json` — **added by us.** Not upstream code.
 - `src/pointto-qa-panel.tsx` — **added by us.** A temporary harness so testers can request an element by id and see which anchor resolved it. Deleted once the real widget exists.
-- `package.json` — added the `@pointto/core` and `@pointto/react` workspace dependencies, and a `dev:pointto` script.
+- `package.json` — added the `pointto-core` and `pointto` workspace dependencies, and a `dev:pointto` script.
 
 ### Why the extra dev script
 

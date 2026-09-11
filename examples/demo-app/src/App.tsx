@@ -1,7 +1,6 @@
 import React from "react";
 // pointto: added by us. See PROVENANCE.md.
-import type { Manifest } from "@pointto/core";
-import { GuideProvider } from "@pointto/react";
+import { GuideProvider, type Manifest } from "pointto";
 import pointtoManifest from "./pointto.manifest.json";
 import { PointtoQaPanel } from "./pointto-qa-panel";
 import { Authenticated, Refine } from "@refinedev/core";
