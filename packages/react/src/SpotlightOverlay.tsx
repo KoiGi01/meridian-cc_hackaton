@@ -4,13 +4,22 @@ import { OVERLAY_CSS } from './overlay-styles';
 
 export interface SpotlightOverlayProps {
   target: HTMLElement | null;
+  /** Increments on every spotlight request, so re-asking re-scrolls. */
+  request: number;
   zIndex: number;
   padding: number;
   radius: number;
   dimOpacity: number;
 }
 
-export function SpotlightOverlay({ target, zIndex, padding, radius, dimOpacity }: SpotlightOverlayProps) {
+export function SpotlightOverlay({
+  target,
+  request,
+  zIndex,
+  padding,
+  radius,
+  dimOpacity,
+}: SpotlightOverlayProps) {
   const [rect, setRect] = useState<Rect | null>(null);
 
   useEffect(() => {
@@ -22,7 +31,9 @@ export function SpotlightOverlay({ target, zIndex, padding, radius, dimOpacity }
     // view before tracking it. observeRect then follows the scroll itself.
     scrollIntoViewIfNeeded(target);
     return observeRect(target, setRect);
-  }, [target]);
+    // `request` is deliberately a dependency: re-asking for the element the user
+    // is already pointed at must scroll back to it.
+  }, [target, request]);
 
   if (!target || !rect) return <style>{OVERLAY_CSS}</style>;
 

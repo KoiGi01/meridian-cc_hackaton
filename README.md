@@ -8,11 +8,13 @@ Built for the [AssemblyAI Voice Agent Hackathon](https://lablab.ai). MIT license
 
 ## Status
 
-**Checkpoint 1 of 9 complete** — the spotlight mechanism. No voice yet.
+**Checkpoint 2 of 9 complete** — the spotlight, and the resolver that finds an element from a manifest id. No voice yet.
+
+It runs against [Refine's open-source admin app](https://github.com/refinedev/refine), which we did not write — see [examples/demo-app/PROVENANCE.md](examples/demo-app/PROVENANCE.md). Delete the button's test id *and* rename its label, without regenerating the manifest, and it still points at the right control. Delete the element outright and it lights nothing and says so, because a wrong highlight is worse than an admitted failure.
 
 See [docs/QA-MANUAL.md](docs/QA-MANUAL.md) to test what exists today, and [BUILD-SPEC.md](BUILD-SPEC.md) for the full design.
 
-![The billing button lit up while the rest of the page is dimmed](docs/img/phase1-spotlight-billing.png)
+![The spotlight finding the Add new product button inside the Refine admin app](docs/img/phase2-demo-app-spotlight.png)
 
 ## Why this is not a guided tour library
 
@@ -50,9 +52,10 @@ Requires Node 20+ and pnpm.
 
 ```bash
 pnpm install
-pnpm --filter playground dev    # test page on http://localhost:5173
-pnpm test                       # run the suite
-pnpm build                      # build all packages
+pnpm --filter playground dev              # dev harness on http://localhost:5173
+pnpm --filter finefoods-antd dev:pointto  # third-party demo on http://localhost:5190
+pnpm test                                 # run the suite
+pnpm build                                # build all packages
 ```
 
 ## License

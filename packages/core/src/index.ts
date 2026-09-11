@@ -3,3 +3,7 @@ export * from './geometry';
 export { ManifestError, parseManifest } from './manifest';
 export { observeRect } from './observe-rect';
 export { scrollIntoViewIfNeeded } from './scroll-into-view';
+export { isVisible } from './visibility';
+export { matchAnchor } from './anchors';
+export { findElementById, resolveElement } from './resolve';
+export type { ResolveOutcome } from './resolve';

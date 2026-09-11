@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "generatedAt": "2026-09-11T00:00:00Z",
+  "baseUrl": "http://localhost:5175",
+  "routes": [
+    {
+      "path": "/products",
+      "label": "Products",
+      "elements": [
+        {
+          "id": "products.nav",
+          "purpose": "Sidebar link that opens the product catalogue",
+          "aliases": ["products", "catalogue", "menu items", "food items", "what we sell"],
+          "category": "navigation",
+          "anchors": [
+            { "kind": "role-name", "role": "link", "name": "Products", "confidence": 0.8 },
+            { "kind": "css", "value": "a[href=\"/products\"]", "confidence": 0.55 },
+            { "kind": "text", "value": "Products", "confidence": 0.4 }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "products.create",
+          "purpose": "Opens the form for adding a new product to the catalogue",
+          "aliases": ["add a product", "new product", "create a product", "add an item to the menu"],
+          "category": "product-management",
+          "anchors": [
+            { "kind": "role-name", "role": "button", "name": "Add new product", "confidence": 0.8 },
+            { "kind": "css", "value": "a[href=\"/products/new\"] button", "confidence": 0.5 },
+            { "kind": "text", "value": "Add new product", "confidence": 0.4 }
+          ],
+          "destructive": false
+        }
+      ]
+    },
+    {
+      "path": "/stores",
+      "label": "Stores",
+      "elements": [
+        {
+          "id": "stores.nav",
+          "purpose": "Sidebar link that opens the list of store locations",
+          "aliases": ["stores", "locations", "branches", "shops", "outlets"],
+          "category": "navigation",
+          "anchors": [
+            { "kind": "role-name", "role": "link", "name": "Stores", "confidence": 0.8 },
+            { "kind": "css", "value": "a[href=\"/stores\"]", "confidence": 0.55 },
+            { "kind": "text", "value": "Stores", "confidence": 0.4 }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "stores.create",
+          "purpose": "Opens the form for adding a new store location",
+          "aliases": ["add a store", "new store", "open a new branch", "create a location"],
+          "category": "store-management",
+          "anchors": [
+            { "kind": "role-name", "role": "button", "name": "Add new store", "confidence": 0.8 },
+            { "kind": "css", "value": "a[href=\"/stores/new\"] button", "confidence": 0.5 },
+            { "kind": "text", "value": "Add new store", "confidence": 0.4 }
+          ],
+          "destructive": false
+        }
+      ]
+    },
+    {
+      "path": "/",
+      "label": "Dashboard",
+      "elements": [
+        {
+          "id": "dashboard.nav",
+          "purpose": "Sidebar link back to the overview dashboard",
+          "aliases": ["dashboard", "home", "overview", "the main screen"],
+          "category": "navigation",
+          "anchors": [
+            { "kind": "role-name", "role": "link", "name": "Dashboard", "confidence": 0.8 },
+            { "kind": "css", "value": "a[href=\"/\"]", "confidence": 0.55 },
+            { "kind": "text", "value": "Dashboard", "confidence": 0.4 }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "orders.nav",
+          "purpose": "Sidebar link that opens the list of customer orders",
+          "aliases": ["orders", "sales", "purchases", "what people ordered"],
+          "category": "navigation",
+          "anchors": [
+            { "kind": "role-name", "role": "link", "name": "Orders", "confidence": 0.8 },
+            { "kind": "css", "value": "a[href=\"/orders\"]", "confidence": 0.55 },
+            { "kind": "text", "value": "Orders", "confidence": 0.4 }
+          ],
+          "destructive": false
+        }
+      ]
+    }
+  ]
+}
