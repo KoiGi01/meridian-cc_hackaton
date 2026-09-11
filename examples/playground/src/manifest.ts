@@ -20,7 +20,7 @@ export const manifest: Manifest = {
         {
           id: 'team.invite-member',
           purpose: 'Opens the dialog to invite a new person to the workspace',
-          aliases: ['add someone', 'invite a user', 'add a teammate', 'new member'],
+          aliases: ['add someone', 'invite someone', 'invite a user', 'add a teammate', 'new member', 'add a person to my team'],
           category: 'team-management',
           anchors: [
             { kind: 'testid', value: 'invite-member-btn', confidence: 1 },
@@ -33,7 +33,7 @@ export const manifest: Manifest = {
         {
           id: 'billing.manage',
           purpose: 'Opens the billing settings for the workspace',
-          aliases: ['billing', 'payment', 'change my plan', 'subscription'],
+          aliases: ['billing', 'payment', 'change my plan', 'subscription', 'where is billing', 'manage billing'],
           category: 'billing',
           anchors: [
             { kind: 'testid', value: 'billing-btn', confidence: 1 },

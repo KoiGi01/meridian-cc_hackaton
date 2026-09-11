@@ -24,10 +24,11 @@ The hackathon repository must stand alone for judges: `git clone` then `pnpm ins
 
 The only permitted modification is mounting our `GuideProvider`, plus the manifest file we author ourselves. Specifically:
 
-- `src/App.tsx` — wrapped the application in `<GuideProvider>` and mounted the QA panel. Two import lines and two wrapper elements; nothing else in the file was touched.
+- `src/App.tsx` — wrapped the application in `<GuideProvider>`. Two import lines and one wrapper element; nothing else in the file was touched. The widget itself is rendered by the provider, so nothing else is mounted.
 - `src/pointto.manifest.json` — **added by us.** Not upstream code.
-- `src/pointto-qa-panel.tsx` — **added by us.** A temporary harness so testers can request an element by id and see which anchor resolved it. Deleted once the real widget exists.
-- `package.json` — added the `pointto-core` and `pointto` workspace dependencies, and a `dev:pointto` script.
+- `package.json` — added the `pointto` workspace dependency, and `dev:pointto` / `predev:pointto` scripts.
+
+(Checkpoint 2 briefly included a `pointto-qa-panel.tsx` as test scaffolding. It was removed in Checkpoint 3 once the real widget existed.)
 
 ### Why the extra dev script
 

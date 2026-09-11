@@ -7,3 +7,6 @@ export { isVisible } from './visibility';
 export { matchAnchor } from './anchors';
 export { findElementById, resolveElement } from './resolve';
 export type { ResolveOutcome } from './resolve';
+export { waitForElement } from './wait-for-element';
+export { LexicalIntentResolver, tokenize } from './intent';
+export type { IntentMatch, IntentResolver } from './intent';

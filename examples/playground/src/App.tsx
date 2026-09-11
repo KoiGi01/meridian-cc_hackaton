@@ -31,7 +31,7 @@ const readout: CSSProperties = {
 };
 
 export function App() {
-  const { spotlightId, clear, lastOutcome } = useGuide();
+  const { lastOutcome } = useGuide();
   const [clicks, setClicks] = useState(0);
 
   // The two ways a host app breaks a manifest: the test id disappears in a
@@ -45,13 +45,10 @@ export function App() {
   return (
     <main style={{ font: '16px/1.5 system-ui, sans-serif', maxWidth: 760, margin: '0 auto', padding: 24 }}>
       <h1>pointto playground</h1>
-      <p>Checkpoint 2. The buttons below ask for an element by manifest id, not by reference.</p>
-
-      <div style={bar}>
-        <button onClick={() => spotlightId('team.invite-member')}>Ask for “invite member”</button>
-        <button onClick={() => spotlightId('billing.manage')}>Ask for “billing”</button>
-        <button onClick={clear}>Clear</button>
-      </div>
+      <p>
+        Checkpoint 3. Open the widget (the <strong>?</strong> button, bottom right) and ask it something in
+        plain words — try <em>how do I invite someone?</em> or <em>where is billing?</em>
+      </p>
 
       <div style={bar}>
         <strong style={{ font: '13px system-ui' }}>Break the manifest:</strong>
@@ -71,7 +68,7 @@ export function App() {
 
       <pre style={readout} data-testid="outcome-readout">
         {lastOutcome === null
-          ? 'No request yet. Click one of the “Ask for” buttons.'
+          ? 'No request yet. Ask the widget something.'
           : lastOutcome.status === 'resolved'
             ? `resolved   anchor: ${lastOutcome.anchorKind}  (position ${lastOutcome.anchorIndex} in the cascade)${
                 lastOutcome.ambiguous ? '  AMBIGUOUS: more than one match' : ''

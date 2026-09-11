@@ -2,7 +2,6 @@ import React from "react";
 // pointto: added by us. See PROVENANCE.md.
 import { GuideProvider, type Manifest } from "pointto";
 import pointtoManifest from "./pointto.manifest.json";
-import { PointtoQaPanel } from "./pointto-qa-panel";
 import { Authenticated, Refine } from "@refinedev/core";
 import { RefineKbarProvider, RefineKbar } from "@refinedev/kbar";
 import {
@@ -75,7 +74,6 @@ const App: React.FC = () => {
   return (
     // pointto: the only modification to this third-party file. See PROVENANCE.md.
     <GuideProvider manifest={pointtoManifest as Manifest}>
-      <PointtoQaPanel />
       <BrowserRouter>
         <ConfigProvider>
         <RefineKbarProvider>
