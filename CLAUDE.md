@@ -2,59 +2,57 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Repository status
+## Orientation
 
-There is no code yet. The repo currently holds one file, [proyecto-guia-de-voz.md](proyecto-guia-de-voz.md), the project plan. It is also **not a git repository yet** — the hackathon requires a public GitHub repo under the MIT license, so `git init` + a `LICENSE` file are part of the work.
+Read [BUILD-SPEC.md](BUILD-SPEC.md) before touching code — it is the design document and the build order (§9). [docs/superpowers/specs/2026-09-11-pointto-decisions.md](docs/superpowers/specs/2026-09-11-pointto-decisions.md) closes its open questions. Each phase has a plan in `docs/superpowers/plans/`. Progress is tracked in the "Status" section of [README.md](README.md) and in [docs/QA-MANUAL.md](docs/QA-MANUAL.md), which gets a new checkpoint section every time a phase lands.
 
-There are therefore no build, lint, or test commands to document. Add them to this file as the packages are scaffolded.
+The planning doc [proyecto-guia-de-voz.md](proyecto-guia-de-voz.md) is in Spanish and the user works in Spanish; match that language for product discussion unless asked otherwise.
 
-The planning doc is written in Spanish and the user works in Spanish; match that language in discussion of product decisions unless asked otherwise.
+Public repo: https://github.com/KoiGi01/meridian-cc_hackaton — MIT, hackathon rule. Deadline 30 Sep 2026 09:00 Mérida; 29 Sep is the last full day. Commit history is judged: one branch per phase, merged into `main` with `--no-ff`, one commit per task, never squash.
 
-## What is being built
+## Commands
 
-A conversational navigation layer that drops into someone else's React dashboard as a library. The user asks a question out loud ("¿cómo agrego a alguien de mi equipo?"), and the agent navigates to the right screen, spotlights the exact control, and narrates what to do — then *corrects the user by voice if they click the wrong thing*. That live correction is the differentiator; without it the project reads as "a guided tour with voice" (Intro.js / Shepherd.js / WalkMe / Pendo), which is the stated main risk.
+```bash
+pnpm install
+pnpm test                                 # vitest, all packages
+pnpm vitest run packages/core             # one package
+pnpm vitest run packages/core/src/resolve.test.ts   # one file
+pnpm build                                # tsup, ESM + CJS + d.ts for packages/*
+pnpm --filter playground dev              # dev harness, http://localhost:5173
+pnpm --filter finefoods-antd dev:pointto  # vendored Refine demo, http://localhost:5190
+```
 
-Submitted to the AssemblyAI Voice Agent Hackathon (lablab.ai). Hard deadline 30 Sep 2026, 9:00 AM Mérida time — last full working day is 29 Sep.
+Use `dev:pointto`, never the demo app's own `dev` — `refine dev` hangs on Windows. `dev:pointto` has a `predev` hook that builds the packages first, because the demo app consumes `dist/` and `dist/` is gitignored.
 
-## Planned architecture (three pieces)
+## Layout
 
-**1. Scan CLI** — run once by the developer installing the library: `npx <name> scan --routes ./rutas.json`. Drives the target app with Playwright, captures the **accessibility tree** of each route (not raw HTML — the a11y tree is 10–100× smaller and carries each control's name and purpose; this choice is what makes the project feasible at all), has an LLM label every element (what it does, synonyms a user might say, when it applies), and emits a `manifest.json` the developer commits and can hand-edit. The manifest being reviewable and versioned is a feature, not a compromise.
+```
+packages/core     manifest types + validator, geometry, rect tracking, resolver. NO React — enforced by no-react.test.ts.
+packages/react    GuideProvider / useGuide, SpotlightOverlay in Shadow DOM.
+examples/playground   our own harness. Aliases @pointto/* to source, so no build needed.
+examples/demo-app     THIRD-PARTY CODE (Refine finefoods-antd). See its PROVENANCE.md before editing anything.
+docs/             QA manual, specs, plans, screenshots.
+```
 
-**2. npm package (the widget)** — floating widget, spotlight overlay, on-screen element resolver, and the voice-agent connection. Rendered in **Shadow DOM** so host-app styles and ours cannot collide.
+## How the pieces fit
 
-**3. Minimal backend** — exactly two endpoints: issue short-lived AssemblyAI tokens (the API key must never reach the browser), and receive usage events (what users asked, where they got stuck). No accounts, no DB, no dashboard.
+`GuideProvider` owns one `target: HTMLElement | null`. `spotlightId(id)` looks the id up in the manifest, runs `resolveElement` from core, sets the target, and returns a `ResolveOutcome` — a value, never a throw, because the voice agent will call this as a tool and must be able to say "I can't find that" out loud. `SpotlightOverlay` scrolls the target into view, tracks its rect via `observeRect`, computes a cutout, and renders a single fixed `div` whose 9999px `box-shadow` is the dim. The overlay is `pointer-events: none`; the host UI is never blocked.
 
-### AssemblyAI integration
+`resolveElement` walks an element's anchors most-durable-first (`testid` → `role-name` → `text` → `css`) and takes the first that matches exactly one visible element. Unique-from-weak beats ambiguous-from-strong. No match returns `not-found` — a wrong highlight is worse than an admitted failure. The outcome reports which anchor won; that is the telemetry for manifest brittleness.
 
-Uses the **Voice Agent API** (single connection: listen, understand, decide, speak, with turn detection, barge-in, and tool calls). Tools the agent invokes in our code:
+## Things learned the hard way
 
-- `navigate(ruta)` — move the user to the right screen
-- `highlight(elemento)` — spotlight the control
-- `confirmAction(elemento)` — wait for the user to actually click it
+- **jsdom lies about layout.** Two real bugs passed the unit suite and only showed in a browser: a below-the-fold target rendered nothing (viewport clamp → zero cutout), and re-requesting an already-lit element was a silent no-op (effect keyed on target identity; React reuses the node). Both have regression tests now, but the rule stands: after any change to overlay or resolver behaviour, drive it in a real browser before calling it done.
+- **Real apps have no `data-testid`.** The Refine demo has zero. Everything resolves via `role-name`. The scanner (Phase 5) must not assume test ids exist.
+- **The demo app is on React 19; the playground and our devDeps are on 18.** Our peer range is `>=18`. Keep it that way — it is a live check that the library is not secretly 18-only.
+- **Vendored from a release tag, not `main`.** Refine's `main` pins examples to unpublished workspace versions and will not install. Re-vendoring must use a `@refinedev/core@x.y.z` tag.
+- **Only `App.tsx` may change in `examples/demo-app`.** Mounting the provider is the one permitted edit. Do not reformat, lint-fix, or upgrade it. If the widget needs the host restructured, that is a bug in the widget.
+- **`vitest.config.ts` aliases `@pointto/core` to source.** Otherwise a red-green cycle silently runs against the last `pnpm build`.
 
-Six languages (en, es, fr, de, it, pt) with mid-sentence switching come free from the API — one manifest yields onboarding in all six. This is a headline selling point in the pitch.
+## Product rules that will look like bugs
 
-## Design decisions that must not be silently reversed
+Non-negotiable, from BUILD-SPEC §6: the UI is never locked (only `destructive: true` elements get a confirmation gate); the agent guides, it never clicks for the user; the mic is off until the widget is opened; text input has full parity with voice; the linear tour is the same engine with the intent pre-supplied, not a second code path.
 
-- **Never block the screen.** The spotlight dims everything visually, but the rest of the UI stays clickable. Reasons: users legitimately detour mid-task; this is a library running inside someone else's product and trapping their users is unshippable; and a tour you cannot deviate from removes the demo that proves the agent understands. **Only exception:** destructive or irreversible actions — intercept those and ask for confirmation.
-- **The mic is not always on.** It opens when the user opens the widget. An always-listening mic is an instant rejection from any corporate buyer.
-- **Text fallback is not optional.** Same engine, same spotlight, typed input, for denied mic permission or noisy offices. Voice is what gets demoed; the fallback is what makes it a usable library.
-- **The demo app must be a real open-source app**, not a toy dashboard we write. Scanning third-party code is the proof this is a framework rather than a bespoke demo.
+## Not built yet
 
-## Scope for the three weeks
-
-In: React only; a deployed example app judges can open; working scan CLI; package actually published to npm; voice + text fallback.
-
-Out (mentioned as roadmap in the pitch, not built): route-discovery crawler (the dev supplies the route list), analytics dashboard, accounts/billing, Vue/Angular support.
-
-## Known hard parts
-
-1. **Selector durability** — if the host app changes a button's label, the manifest stops finding it. Plan: store several anchors per element and resolve in cascade until one hits. This is the real engineering problem of the project.
-2. **Live correction** — detecting the user went off-path and reacting by voice without being irritating.
-3. **Transient app state** — modals, popovers, things that appear conditionally are not all visible to a static scan.
-
-## Deliverables checklist (hackathon submission)
-
-Title + description, cover image, ≤5 min MP4 pitch video, PDF deck, public MIT-licensed GitHub repo, live demo URL judges can visit. Presentation is a quarter of the score.
-
-**Pitch ordering matters:** open with the open-ended question and the spotlight answering it. Show the linear tour last, as a special case of the same engine. Leading with the linear tour gets the project filed as "another guided tour."
+Phases 3–9 of BUILD-SPEC §9: text-mode intent (the safety net), voice via AssemblyAI Voice Agent API, the Playwright + Gemini scanner CLI, drift detection, token server + deploy + npm publish, flows / linear tour, polish and demo video. Fetch `https://www.assemblyai.com/docs/agent-instructions.md` before writing any AssemblyAI code; model and event names in training data are stale.
