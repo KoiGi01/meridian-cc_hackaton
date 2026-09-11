@@ -103,8 +103,8 @@ describe('buildSessionUpdate', () => {
     expect(s.session.system_prompt).toMatch(/stores\.delete[^\n]*DESTRUCTIVE/);
   });
 
-  it('defaults to lola, who speaks Spanish and English', () => {
-    expect(s.session.output.voice).toBe('lola');
+  it('defaults to an English-native voice', () => {
+    expect(s.session.output.voice).toBe('anna');
   });
 
   it('leaves language detection automatic unless told otherwise', () => {

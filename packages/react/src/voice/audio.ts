@@ -26,16 +26,16 @@ export interface Capture {
  * Opens the microphone — the ONLY place in the library that does — and streams
  * base64 PCM16 @ 24 kHz chunks to `onChunk`.
  *
- * Echo cancellation on so laptops work without headphones. Noise suppression
- * off: the server already denoises, and stacking a second layer hurts
- * transcription (live docs, 2026-09-11).
+ * Constraints match AssemblyAI's official browser sketch: echo cancellation,
+ * noise suppression, and auto gain all on. The browser's AEC is what stops the
+ * agent's own voice coming back through the mic as "user speech".
  */
 export async function createCapture(
   ctx: AudioContext,
   onChunk: (base64Pcm16: string) => void,
 ): Promise<Capture> {
   const stream = await navigator.mediaDevices.getUserMedia({
-    audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: true },
+    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
   });
 
   const url = URL.createObjectURL(new Blob([PCM_WORKLET_SOURCE], { type: 'application/javascript' }));
@@ -46,9 +46,12 @@ export async function createCapture(
   }
 
   const source = ctx.createMediaStreamSource(stream);
-  const node = new AudioWorkletNode(ctx, 'pointto-pcm', { numberOfOutputs: 0 });
+  const node = new AudioWorkletNode(ctx, 'pointto-pcm');
   node.port.onmessage = (e: MessageEvent<ArrayBuffer>) => onChunk(toBase64(e.data));
-  source.connect(node);
+  // Connected through to the destination as in the official sketch, so the
+  // graph is guaranteed to be processed. The worklet writes no output, so
+  // nothing from the mic reaches the speakers.
+  source.connect(node).connect(ctx.destination);
 
   return {
     stop() {
@@ -67,13 +70,30 @@ export interface Playback {
   flush(): void;
 }
 
+/** RMS of a PCM16 chunk, scaled so normal speech lands around 0.4–0.9. */
+function level(pcm: Int16Array): number {
+  if (pcm.length === 0) return 0;
+  let sum = 0;
+  for (let i = 0; i < pcm.length; i++) sum += pcm[i]! * pcm[i]!;
+  return Math.min(1, (Math.sqrt(sum / pcm.length) / 32768) * 4);
+}
+
 /**
- * Schedules chunks back to back on the audio clock rather than sleeping, so
- * network jitter is absorbed and there are no pops between chunks.
+ * Schedules chunks back to back on the audio clock rather than sleeping.
+ *
+ * The server streams 10 ms chunks at exactly real time (measured: 8.34 s of
+ * audio arrived in 8.33 s). Scheduling each one at max(now, head) with no
+ * slack means any network jitter over 10 ms becomes an audible gap, and the
+ * voice sounds chopped. So when a reply starts — or whenever we have fallen
+ * behind — the head is pushed LEAD_S ahead of now, giving the stream a small
+ * buffer to absorb jitter. 150 ms is below what a listener notices as delay.
  */
-export function createPlayback(ctx: AudioContext): Playback {
+const LEAD_S = 0.15;
+
+export function createPlayback(ctx: AudioContext, onLevel?: (level: number) => void): Playback {
   let nextStart = 0;
   let live: AudioBufferSourceNode[] = [];
+  let timers: ReturnType<typeof setTimeout>[] = [];
 
   return {
     push(b64) {
@@ -86,13 +106,23 @@ export function createPlayback(ctx: AudioContext): Playback {
       const src = ctx.createBufferSource();
       src.buffer = buffer;
       src.connect(ctx.destination);
-      const at = Math.max(ctx.currentTime, nextStart);
+      // Fallen behind (or first chunk of a reply): re-establish the lead.
+      if (nextStart < ctx.currentTime) nextStart = ctx.currentTime + LEAD_S;
+      const at = nextStart;
       src.start(at);
       nextStart = at + buffer.duration;
       live.push(src);
       src.onended = () => {
         live = live.filter((s) => s !== src);
+        if (live.length === 0) onLevel?.(0);
       };
+      if (onLevel) {
+        // Report the level when this chunk is actually heard, not when it
+        // arrived, so the glow moves with the voice rather than ahead of it.
+        const lvl = level(pcm);
+        const t = setTimeout(() => onLevel(lvl), Math.max(0, (at - ctx.currentTime) * 1000));
+        timers.push(t);
+      }
     },
     flush() {
       for (const s of live) {
@@ -104,6 +134,9 @@ export function createPlayback(ctx: AudioContext): Playback {
       }
       live = [];
       nextStart = 0;
+      for (const t of timers) clearTimeout(t);
+      timers = [];
+      onLevel?.(0);
     },
   };
 }

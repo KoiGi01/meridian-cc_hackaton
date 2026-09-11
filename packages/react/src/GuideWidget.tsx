@@ -19,14 +19,22 @@ interface Turn {
   choices?: IntentMatch[];
 }
 
+const CAPTION_MS = 6000;
+
 /**
  * The widget. Text always works. Voice is a mic button that appears only when
  * the provider has voice config, and the microphone opens only when it is
  * pressed — never on open, never in the background (BUILD-SPEC 5.5).
  *
- * With a voice session open, typed text goes through the same agent, so text
- * and voice share one brain. With no session, the local lexical resolver is
- * the floor that always works.
+ * Two distinct ways out, on purpose:
+ *   - Collapse (the orb, or "–"): hides the chat, keeps the session alive.
+ *     The orb keeps glowing with the agent's voice and shows captions.
+ *   - Exit (the button, or Escape): ends the session and turns the mic off.
+ *     When someone wants out, the microphone must actually go off.
+ *
+ * The orb is the product's metaphor made literal: this thing answers with
+ * light, so its voice is shown as light. The glow is driven by the real
+ * audio level of each chunk as it is heard.
  */
 export function GuideWidget({
   position = 'bottom-right',
@@ -41,32 +49,46 @@ export function GuideWidget({
   const [query, setQuery] = useState('');
   const [turns, setTurns] = useState<Turn[]>([]);
   const [partial, setPartial] = useState('');
+  const [caption, setCaption] = useState<string | null>(null);
+  const [userSpeaking, setUserSpeaking] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
+  const orbRef = useRef<HTMLButtonElement>(null);
+  const openRef = useRef(open);
+  openRef.current = open;
+  const captionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const levelRef = useRef(0);
 
   const side = position === 'bottom-left' ? 'pt-left' : 'pt-right';
   const live = voiceState === 'listening' || voiceState === 'speaking' || voiceState === 'ready';
   const connecting = voiceState === 'connecting';
+  const speaking = voiceState === 'speaking';
 
-  const close = useCallback(() => {
+  const exit = useCallback(() => {
     setOpen(false);
+    setCaption(null);
     stopVoice();
     clear();
   }, [clear, stopVoice]);
 
-  // Escape always closes. Registered only while open, on window, capture
-  // phase, so it works no matter what in the host has focus.
+  const collapse = useCallback(() => setOpen(false), []);
+
+  // Escape always exits — mic off. Registered only while open, on window,
+  // capture phase, so it works no matter what in the host has focus.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close();
+      if (e.key === 'Escape') exit();
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [open, close]);
+  }, [open, exit]);
 
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    if (open) {
+      inputRef.current?.focus();
+      setCaption(null);
+    }
   }, [open]);
 
   useEffect(() => {
@@ -80,22 +102,49 @@ export function GuideWidget({
     [],
   );
 
-  // Live transcript from the agent. Final transcripts become turns; partial
-  // user speech shows as a faint in-progress line.
+  const showCaption = useCallback((text: string) => {
+    setCaption(text);
+    if (captionTimer.current) clearTimeout(captionTimer.current);
+    captionTimer.current = setTimeout(() => setCaption(null), CAPTION_MS);
+  }, []);
+
+  // The glow. Levels arrive ~100×/s, so they go straight to a CSS variable on
+  // the orb rather than through React state. Smoothed with a fast attack and
+  // a slower decay so it breathes with the voice instead of flickering.
+  const setLevel = useCallback((raw: number) => {
+    const next = raw > levelRef.current ? raw : levelRef.current * 0.82;
+    levelRef.current = next < 0.02 ? 0 : next;
+    orbRef.current?.style.setProperty('--pt-level', levelRef.current.toFixed(3));
+  }, []);
+
+  // Live transcript and voice cues from the agent.
   useEffect(
     () =>
       onAgentEvent((e) => {
         switch (e.type) {
+          case 'audio.level':
+            setLevel(Number(e.level) || 0);
+            break;
+          case 'input.speech.started':
+            setUserSpeaking(true);
+            break;
+          case 'input.speech.stopped':
+            setUserSpeaking(false);
+            break;
           case 'transcript.user.delta':
             setPartial(String(e.text ?? e.delta ?? ''));
             break;
           case 'transcript.user':
             setPartial('');
+            setUserSpeaking(false);
             setTurns((t) => [...t, { role: 'user', text: String(e.text ?? '') }]);
             break;
-          case 'transcript.agent':
-            say(String(e.text ?? ''));
+          case 'transcript.agent': {
+            const text = String(e.text ?? '');
+            say(text);
+            if (!openRef.current) showCaption(text);
             break;
+          }
           case 'mic.unavailable':
             setTurns((t) => [
               ...t,
@@ -105,10 +154,20 @@ export function GuideWidget({
           case 'error':
             setTurns((t) => [...t, { role: 'system', text: `Voice stopped: ${String(e.message ?? 'unknown error')}` }]);
             break;
+          case 'state':
+            if (e.state === 'ended' || e.state === 'error') {
+              setLevel(0);
+              setUserSpeaking(false);
+            }
+            break;
         }
       }),
-    [onAgentEvent, say],
+    [onAgentEvent, say, showCaption, setLevel],
   );
+
+  useEffect(() => () => {
+    if (captionTimer.current) clearTimeout(captionTimer.current);
+  }, []);
 
   const purposeOf = (id: string) =>
     (manifest && findElementById(manifest, id)?.purpose) || 'Here it is.';
@@ -181,6 +240,16 @@ export function GuideWidget({
           ? 'Ready'
           : null;
 
+  const orbClass = [
+    'pt-orb',
+    side,
+    speaking ? 'pt-orb-agent' : '',
+    userSpeaking ? 'pt-orb-user' : '',
+    live && !speaking && !userSpeaking ? 'pt-orb-live' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <>
       <style>{WIDGET_CSS}</style>
@@ -202,7 +271,17 @@ export function GuideWidget({
                 </>
               )}
             </span>
-            <button type="button" className="pt-exit" data-pointto-exit="" onClick={close}>
+            <button
+              type="button"
+              className="pt-collapse"
+              data-pointto-collapse=""
+              onClick={collapse}
+              aria-label="Hide chat"
+              title={live ? 'Hide chat (voice stays on)' : 'Hide chat'}
+            >
+              –
+            </button>
+            <button type="button" className="pt-exit" data-pointto-exit="" onClick={exit}>
               Exit
             </button>
           </div>
@@ -274,19 +353,37 @@ export function GuideWidget({
               Ask
             </button>
           </form>
+
+          <div className="pt-foot" data-pointto-brand="">
+            powered by <span className="pt-wordmark">pointto</span>
+          </div>
+        </div>
+      )}
+
+      {!open && caption && (
+        <div
+          className={`pt-caption ${side}`}
+          data-pointto-caption=""
+          role="status"
+          title="powered by pointto"
+          style={{ zIndex }}
+          onClick={() => setOpen(true)}
+        >
+          {caption}
         </div>
       )}
 
       <button
+        ref={orbRef}
         type="button"
-        className={`pt-trigger ${side}`}
+        className={orbClass}
         data-pointto-trigger=""
-        aria-label={open ? 'Close guide' : 'Open guide'}
+        aria-label={open ? 'Hide chat' : live ? 'Show chat (voice is on)' : 'Open guide'}
         aria-expanded={open}
-        onClick={() => (open ? close() : setOpen(true))}
+        onClick={() => (open ? collapse() : setOpen(true))}
         style={{ zIndex }}
       >
-        {open ? '×' : '?'}
+        {open ? '–' : '?'}
       </button>
     </>
   );

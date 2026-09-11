@@ -624,4 +624,46 @@ describe('GuideProvider', () => {
       expect(result).toBe(false);
     });
   });
+  describe('collapse vs exit, glow, brand', () => {
+    function shadowEl(sel: string) {
+      return shadow()!.querySelector(sel) as HTMLElement | null;
+    }
+
+    it('shows "powered by pointto" in the panel', () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest}>
+          <div />
+        </GuideProvider>,
+      );
+      act(() => shadowEl('[data-pointto-trigger]')!.click());
+      expect(shadowEl('[data-pointto-brand]')!.textContent).toMatch(/powered by\s*pointto/);
+    });
+
+    it('collapsing hides the chat but leaves the light on; exit clears it', () => {
+      render(
+        <GuideProvider manifest={twoRouteManifest}>
+          <button data-testid="invite-btn">Invite member</button>
+        </GuideProvider>,
+      );
+      act(() => shadowEl('[data-pointto-trigger]')!.click());
+      const input = shadowEl('[data-pointto-input]') as HTMLInputElement;
+      return (async () => {
+        await act(async () => {
+          fireEvent.change(input, { target: { value: 'how do I invite someone' } });
+          fireEvent.submit(input.closest('form')!);
+        });
+        await waitFor(() => expect(shadowEl('[data-pointto-cutout]')).not.toBeNull());
+
+        act(() => shadowEl('[data-pointto-collapse]')!.click());
+        expect(shadowEl('[data-pointto-panel]')).toBeNull();
+        // Collapsed to *see* the lit element: the light must survive.
+        expect(shadowEl('[data-pointto-cutout]')).not.toBeNull();
+
+        act(() => shadowEl('[data-pointto-trigger]')!.click());
+        act(() => shadowEl('[data-pointto-exit]')!.click());
+        expect(shadowEl('[data-pointto-panel]')).toBeNull();
+        expect(shadowEl('[data-pointto-cutout]')).toBeNull();
+      })();
+    });
+  });
 });

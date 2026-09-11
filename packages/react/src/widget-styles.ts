@@ -4,13 +4,14 @@
  * because `:host { all: initial }` wipes inherited defaults.
  */
 export const WIDGET_CSS = `
-.pt-trigger, .pt-panel, .pt-panel * {
+.pt-orb, .pt-caption, .pt-panel, .pt-panel * {
   box-sizing: border-box;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
   line-height: 1.45;
 }
-.pt-trigger {
+.pt-orb {
+  --pt-level: 0;
   position: fixed;
   bottom: 20px;
   width: 52px;
@@ -21,16 +22,91 @@ export const WIDGET_CSS = `
   background: #18181b;
   color: #fff;
   font-size: 22px;
-  box-shadow: 0 6px 20px rgba(0,0,0,.28);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,.28);
+  transition: box-shadow 70ms linear, transform 70ms linear, background 200ms ease;
 }
-.pt-trigger:hover { background: #27272a; }
-.pt-trigger:focus-visible, .pt-panel button:focus-visible, .pt-input:focus-visible {
-  outline: 2px solid #60a5fa;
-  outline-offset: 2px;
+.pt-orb:hover { background: #27272a; }
+
+/* Session open, nobody talking: a quiet warm ring says "on". */
+.pt-orb-live {
+  box-shadow: 0 6px 20px rgba(0,0,0,.28), 0 0 0 2px rgb(251 191 36 / .55);
 }
+
+/* The agent speaking. --pt-level is the real audio level, 0..1, set per chunk. */
+.pt-orb-agent {
+  background: #1c1917;
+  transform: scale(calc(1 + 0.10 * var(--pt-level)));
+  box-shadow:
+    0 6px 20px rgba(0,0,0,.28),
+    0 0 0 2px rgb(251 191 36 / calc(.45 + .5 * var(--pt-level))),
+    0 0 calc(10px + 44px * var(--pt-level)) calc(2px + 14px * var(--pt-level)) rgb(251 191 36 / calc(.18 + .55 * var(--pt-level)));
+}
+
+/* The user speaking: cooler, steadier, clearly not the agent. */
+.pt-orb-user {
+  box-shadow: 0 6px 20px rgba(0,0,0,.28), 0 0 0 3px rgb(147 197 253 / .7), 0 0 18px 4px rgb(147 197 253 / .35);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pt-orb-user { animation: pt-listen 1.1s ease-in-out infinite; }
+  @keyframes pt-listen {
+    0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,.28), 0 0 0 3px rgb(147 197 253 / .7), 0 0 14px 2px rgb(147 197 253 / .25); }
+    50%      { box-shadow: 0 6px 20px rgba(0,0,0,.28), 0 0 0 3px rgb(147 197 253 / .9), 0 0 24px 8px rgb(147 197 253 / .45); }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pt-orb { transition: none; }
+  .pt-orb-agent { transform: none; box-shadow: 0 6px 20px rgba(0,0,0,.28), 0 0 0 3px rgb(251 191 36 / .85); }
+}
+
+/* What the agent said, while the chat is hidden. Sits beside the orb. */
+.pt-caption {
+  position: fixed;
+  bottom: 28px;
+  max-width: min(340px, calc(100vw - 110px));
+  background: #18181b;
+  color: #e4e4e7;
+  border: 1px solid #3f3f46;
+  border-left: 3px solid #fbbf24;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  cursor: pointer;
+}
+.pt-caption.pt-right { right: 84px; }
+.pt-caption.pt-left { left: 84px; }
+@media (prefers-reduced-motion: no-preference) {
+  .pt-caption { animation: pt-in 160ms ease-out; }
+}
+
+.pt-collapse {
+  background: transparent;
+  border: 1px solid #3f3f46;
+  color: #d4d4d8;
+  border-radius: 8px;
+  width: 30px;
+  height: 28px;
+  margin-right: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+.pt-collapse:hover { background: #27272a; }
+
+.pt-foot {
+  padding: 6px 12px 8px;
+  text-align: center;
+  font-size: 11px;
+  color: #71717a;
+  letter-spacing: .01em;
+}
+.pt-wordmark { color: #a1a1aa; font-weight: 600; }
+.pt-wordmark::after { content: '.'; color: #fbbf24; }
+
 .pt-right { right: 20px; }
 .pt-left { left: 20px; }
 

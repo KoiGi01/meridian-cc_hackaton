@@ -60,10 +60,15 @@ export class VoiceSession {
     }
     const { token } = (await res.json()) as { token: string };
 
-    // Creating the context on the user's click keeps autoplay policies happy.
-    // Chromium honours 24 kHz; elsewhere the worklet resamples.
+    // Created on the user's click so autoplay policies allow it. 24 kHz, as
+    // in AssemblyAI's official browser sketch: Chromium honours it, so capture
+    // and playback both run at the agent's native rate with no resampling.
+    // (Firefox/Safari ignore it; the worklet resamples there.)
     this.ctx = new AudioContext({ sampleRate: AGENT_SAMPLE_RATE });
-    this.playback = this.audio.createPlayback(this.ctx);
+    await this.ctx.resume();
+    this.playback = this.audio.createPlayback(this.ctx, (level) => {
+      this.opts.onEvent({ type: 'audio.level', level });
+    });
 
     await new Promise<void>((resolve, reject) => {
       const ws = new WebSocket(`${AGENT_WS}?token=${encodeURIComponent(token)}`);

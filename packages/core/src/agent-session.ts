@@ -37,7 +37,7 @@ export interface SessionUpdate {
 }
 
 export interface SessionOptions {
-  /** Default `lola`: speaks Spanish and English. Must be an exact catalog id. */
+  /** Default `anna`, the API default (UK English). `lola` for Spanish. Must be an exact catalog id. */
   voice?: string;
   greeting?: string;
   /** Omit for automatic detection and mid-sentence code-switching. */
@@ -168,7 +168,7 @@ export function buildSessionUpdate(manifest: Manifest, opts: SessionOptions = {}
       greeting: opts.greeting ?? 'Hi! Ask me where anything is and I will point at it.',
       input,
       output: {
-        voice: opts.voice ?? 'lola',
+        voice: opts.voice ?? 'anna',
         format: { encoding: 'audio/pcm' },
       },
       tools,

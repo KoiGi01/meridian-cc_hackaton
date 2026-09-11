@@ -266,3 +266,19 @@ Then start the demo app as before. Use **Chrome or Edge** for this checkpoint; F
 **The agent was answering the wrong question.** Sending typed text as a bare conversation message, the documented way, made the agent reply as if nothing had been asked — once it literally replied with a *sample* user question from its own catalog. Carrying the text inside the reply request fixed it every time. Documented in the code so nobody "simplifies" it back.
 
 **The agent hedged instead of pointing.** First prompt made it call a "where am I?" tool before highlighting, then lose the thread. Reworded so highlighting is its unambiguous first move. Now: question in → one tool call → light → one sentence.
+
+### Checkpoint 4, addendum — the orb, captions, and collapse
+
+Added after the first real-microphone test (2026-09-11). The chat panel was blocking the view, and there was no visual sign that the agent was talking.
+
+| # | What to do | What should happen | Pass / Fail |
+|---|---|---|---|
+| 4.14 | Press 🎤 and watch the round button while the greeting plays | It glows **amber and swells with the voice** — louder syllables, bigger glow. It is driven by the real audio, so it should look alive, not like a fixed pulse. | |
+| 4.15 | Press **–** in the panel header (or click the round button) | The chat hides. **Voice stays on** — the mic indicator in the tab stays, and the button keeps a thin amber ring. | |
+| 4.16 | With the chat hidden, say "How do I add a product?" | While *you* talk, the button pulses **blue**. When it answers, amber with the voice, and what it said appears as a **caption next to the button** for a few seconds, then fades. | |
+| 4.17 | Click the caption, or the button | The chat comes back with the full conversation. | |
+| 4.18 | Press **Exit** (or Escape) | Everything stops, including the mic. The tab's mic indicator disappears. | |
+| 4.19 | Look at the bottom of the chat panel | "powered by pointto" with an amber dot. | |
+| 4.20 | Turn on "reduce motion" in your OS and repeat 4.14 | No animation: a steady amber ring while it speaks, nothing more. | |
+
+Voice was changed from `lola` to `anna` after the first test: the same English sentence took 18 s with `lola` and 8 s with `anna`, and `lola`'s English was hard to understand. The raw audio was checked outside the browser (`server/scripts/greeting-wav.ts` writes a WAV straight from the API) and sounded right, which is how the fault was pinned on the browser side.
