@@ -7,6 +7,7 @@ import {
   type IntentMatch,
   type IntentResolver,
   type Manifest,
+  type ManifestElement,
   type ResolveOutcome,
 } from 'pointto-core';
 import {
@@ -122,6 +123,9 @@ export function GuideProvider({
   const [target, setTarget] = useState<HTMLElement | null>(null);
   const [shadow, setShadow] = useState<ShadowRoot | null>(null);
   const [lastOutcome, setLastOutcome] = useState<ResolveOutcome | null>(null);
+  // The manifest element currently lit, so it can be found again if the host
+  // re-renders and replaces the DOM node underneath us.
+  const litEntryRef = useRef<ManifestElement | null>(null);
   // Bumped on every request. The overlay keys its effect on this as well as on
   // the target, so asking for an element you are already pointing at still
   // re-scrolls to it — the user may have wandered off since they last asked.
@@ -147,11 +151,45 @@ export function GuideProvider({
   }, []);
 
   const spotlight = useCallback((el: HTMLElement | null) => {
+    litEntryRef.current = null; // a raw element has no manifest entry to re-find
     setTarget(el);
     setRequest((n) => n + 1);
   }, []);
 
-  const clear = useCallback(() => setTarget(null), []);
+  const clear = useCallback(() => {
+    litEntryRef.current = null;
+    setTarget(null);
+  }, []);
+
+  // Hosts re-render. After a navigation, Refine resolved the target against
+  // the first paint and then replaced the whole table on data load, leaving
+  // us tracking a detached node with a zero rect: the light silently
+  // vanished. While something is lit, watch the DOM and, if the target has
+  // left it, resolve the same manifest element again. (BUILD-SPEC 11)
+  useEffect(() => {
+    if (!target) return;
+    let frame: number | null = null;
+    const check = () => {
+      frame = null;
+      if (target.isConnected) return;
+      const entry = litEntryRef.current;
+      if (!entry) {
+        setTarget(null);
+        return;
+      }
+      const outcome = resolveElement(entry);
+      setLastOutcome(outcome);
+      setTarget(outcome.status === 'resolved' ? outcome.element : null);
+    };
+    const mo = new MutationObserver(() => {
+      if (frame === null) frame = requestAnimationFrame(check);
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      mo.disconnect();
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
+  }, [target]);
 
   const spotlightId = useCallback(
     (id: string): ResolveOutcome => {
@@ -159,6 +197,7 @@ export function GuideProvider({
       const entry = manifest ? findElementById(manifest, id) : null;
       const outcome = entry ? resolveElement(entry) : notFound;
 
+      litEntryRef.current = outcome.status === 'resolved' ? entry : null;
       setLastOutcome(outcome);
       // On failure clear rather than leave the previous light burning, so the
       // agent is never narrating one element while another is lit.
@@ -175,12 +214,15 @@ export function GuideProvider({
       if (!entry || !manifest) return { status: 'unknown-id', elementId: id };
 
       const route = manifest.routes.find((r) => r.elements.includes(entry));
-      const navigated = !!route && route.path !== routerRef.current.currentPath();
+      // Path "*" means the element is on every screen (sidebar, header):
+      // never navigate for it.
+      const navigated = !!route && route.path !== '*' && route.path !== routerRef.current.currentPath();
       if (navigated && route) routerRef.current.navigate(route.path);
 
       // After a navigation the target does not exist until the route renders;
       // on the current route a miss is a miss and should read as prompt.
       const outcome = await waitForElement(entry, { timeoutMs: navigated ? 2500 : 300 });
+      litEntryRef.current = outcome.status === 'resolved' ? entry : null;
       setLastOutcome(outcome);
       setTarget(outcome.status === 'resolved' ? outcome.element : null);
       setRequest((n) => n + 1);

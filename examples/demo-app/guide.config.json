@@ -1,0 +1,14 @@
+{
+  "baseUrl": "http://localhost:5190",
+  "routes": [
+    { "path": "/", "label": "Dashboard" },
+    { "path": "/orders", "label": "Orders" },
+    { "path": "/customers", "label": "Customers" },
+    { "path": "/products", "label": "Products" },
+    { "path": "/categories", "label": "Categories" },
+    { "path": "/stores", "label": "Stores" },
+    { "path": "/couriers", "label": "Couriers" }
+  ],
+  "output": "./src/pointto.generated.manifest.json",
+  "llm": { "model": "gemini-3.6-flash" }
+}

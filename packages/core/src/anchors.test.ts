@@ -53,6 +53,13 @@ describe('matchAnchor', () => {
     expect(hits).toHaveLength(1);
   });
 
+  it('uses the placeholder as the name of an otherwise unnamed input', () => {
+    document.body.innerHTML = '<input placeholder="Search by Store ID, E-mail, Keyword" />';
+    expect(
+      matchAnchor({ kind: 'role-name', role: 'textbox', name: 'Search by Store ID, E-mail, Keyword', confidence: 0.8 }),
+    ).toHaveLength(1);
+  });
+
   it('treats an anchor element as the link role', () => {
     document.body.innerHTML = '<a href="/x">Billing</a>';
     expect(matchAnchor({ kind: 'role-name', role: 'link', name: 'Billing', confidence: 0.8 })).toHaveLength(1);

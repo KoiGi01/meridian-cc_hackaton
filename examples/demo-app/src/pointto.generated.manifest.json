@@ -1,0 +1,1477 @@
+{
+  "version": 1,
+  "generatedAt": "2026-09-11T19:57:25.678Z",
+  "baseUrl": "http://localhost:5190",
+  "routes": [
+    {
+      "path": "*",
+      "label": "Everywhere",
+      "elements": [
+        {
+          "id": "app.dashboard",
+          "purpose": "Navigates to the main dashboard overview.",
+          "aliases": [
+            "go to dashboard",
+            "open dashboard",
+            "dashboard page",
+            "view dashboard",
+            "main overview"
+          ],
+          "category": "navigation",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "link",
+              "name": "Dashboard",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Dashboard",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > aside > div:nth-of-type(1) > ul > li:nth-of-type(1) > span:nth-of-type(2) > a",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "app.orders",
+          "purpose": "Navigates to the orders management page.",
+          "aliases": [
+            "view orders",
+            "go to orders",
+            "open orders page",
+            "orders list",
+            "show orders"
+          ],
+          "category": "navigation",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "link",
+              "name": "Orders",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Orders",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > aside > div:nth-of-type(1) > ul > li:nth-of-type(2) > span:nth-of-type(2) > a",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "app.customers",
+          "purpose": "Navigates to the customer management page.",
+          "aliases": [
+            "view customers",
+            "go to customers",
+            "customer list",
+            "open customers page",
+            "show customers"
+          ],
+          "category": "navigation",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "link",
+              "name": "Customers",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Customers",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > aside > div:nth-of-type(1) > ul > li:nth-of-type(3) > span:nth-of-type(2) > a",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "app.products",
+          "purpose": "Navigates to the products catalog page.",
+          "aliases": [
+            "view products",
+            "go to products",
+            "product catalog",
+            "open products page",
+            "show products"
+          ],
+          "category": "navigation",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "link",
+              "name": "Products",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Products",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > aside > div:nth-of-type(1) > ul > li:nth-of-type(4) > span:nth-of-type(2) > a",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "app.categories",
+          "purpose": "Navigates to the categories management page.",
+          "aliases": [
+            "view categories",
+            "go to categories",
+            "product categories",
+            "open categories",
+            "show categories"
+          ],
+          "category": "navigation",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "link",
+              "name": "Categories",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Categories",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > aside > div:nth-of-type(1) > ul > li:nth-of-type(5) > span:nth-of-type(2) > a",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "app.stores",
+          "purpose": "Navigates to the store management page.",
+          "aliases": [
+            "view stores",
+            "go to stores",
+            "store list",
+            "open stores page",
+            "show stores"
+          ],
+          "category": "navigation",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "link",
+              "name": "Stores",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Stores",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > aside > div:nth-of-type(1) > ul > li:nth-of-type(6) > span:nth-of-type(2) > a",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "app.couriers",
+          "purpose": "Navigates to the couriers management page.",
+          "aliases": [
+            "view couriers",
+            "go to couriers",
+            "courier list",
+            "open couriers page",
+            "delivery drivers"
+          ],
+          "category": "navigation",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "link",
+              "name": "Couriers",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Couriers",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > aside > div:nth-of-type(1) > ul > li:nth-of-type(7) > span:nth-of-type(2) > a",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "app.logout",
+          "purpose": "Logs out of the current account session.",
+          "aliases": [
+            "log out",
+            "sign out",
+            "logout button",
+            "exit account",
+            "end session"
+          ],
+          "category": "authentication",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "menuitem",
+              "name": "Logout",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Logout",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > aside > div:nth-of-type(1) > ul > li:nth-of-type(8)",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "app.search-by-store-id-e-mail-keyword",
+          "purpose": "Searches for entries using store ID, email address, or keyword.",
+          "aliases": [
+            "search bar",
+            "search input",
+            "search by email",
+            "search store id",
+            "keyword search",
+            "global search"
+          ],
+          "category": "search",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "combobox",
+              "name": "Search by Store ID, E-mail, Keyword",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#rc_select_1",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "app.english",
+          "purpose": "Selects English as the application language.",
+          "aliases": [
+            "change language to English",
+            "select English",
+            "language dropdown",
+            "English language option",
+            "switch language"
+          ],
+          "category": "settings",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "English",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "English",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > header > div > div:nth-of-type(2) > div > div:nth-of-type(1) > button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "app.open-guide",
+          "purpose": "Opens the help guide or documentation modal.",
+          "aliases": [
+            "open help guide",
+            "view guide",
+            "help button",
+            "show documentation",
+            "get help",
+            "user manual"
+          ],
+          "category": "help",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "Open guide",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "?",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        }
+      ]
+    },
+    {
+      "path": "/",
+      "label": "Dashboard",
+      "elements": [
+        {
+          "id": "dashboard.last-week",
+          "purpose": "Filters the dashboard data to display metrics from the previous week.",
+          "aliases": [
+            "show last week",
+            "view previous week",
+            "last week data",
+            "filter by last week"
+          ],
+          "category": "analytics",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "Last Week",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Last Week",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(1) > span > div > div > div > div > button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.toggle-fullscreen-view",
+          "purpose": "Toggles the map or dashboard view between normal and fullscreen mode.",
+          "aliases": [
+            "toggle fullscreen",
+            "fullscreen mode",
+            "expand map view",
+            "make map fullscreen"
+          ],
+          "category": "map-controls",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "Toggle fullscreen view",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(7) > button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.map-camera-controls",
+          "purpose": "Opens controls to adjust the map camera angle and orientation.",
+          "aliases": [
+            "camera controls",
+            "map camera options",
+            "adjust map angle",
+            "change camera view"
+          ],
+          "category": "map-controls",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "Map camera controls",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(12) > div > gmp-internal-camera-control > button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.open-this-area-in-google-maps-opens-a-new-window",
+          "purpose": "Opens the currently viewed map location in Google Maps in a new window.",
+          "aliases": [
+            "open in google maps",
+            "view in google maps",
+            "open map externally",
+            "show location on google maps"
+          ],
+          "category": "map-controls",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "link",
+              "name": "Open this area in Google Maps (opens a new window)",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(13) > div > a",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.keyboard-shortcuts",
+          "purpose": "Displays a list of available keyboard shortcuts for map interaction.",
+          "aliases": [
+            "keyboard shortcuts",
+            "show hotkeys",
+            "view shortcut keys",
+            "map shortcuts"
+          ],
+          "category": "help",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "Keyboard shortcuts",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Keyboard shortcuts",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(15) > div > div:nth-of-type(1) > div > div:nth-of-type(2) > button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.terms-opens-in-new-tab",
+          "purpose": "Opens the map terms of service in a new browser tab.",
+          "aliases": [
+            "view terms",
+            "terms of service",
+            "map terms",
+            "legal terms"
+          ],
+          "category": "legal",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "link",
+              "name": "Terms (opens in new tab)",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Terms",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(15) > div > div:nth-of-type(4) > div:nth-of-type(2) > a",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.report-a-map-error-opens-in-new-tab",
+          "purpose": "Opens a page to report inaccuracies or errors in the map data.",
+          "aliases": [
+            "report map error",
+            "report map bug",
+            "fix map error",
+            "submit map feedback"
+          ],
+          "category": "help",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "link",
+              "name": "Report a map error (opens in new tab)",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Report a map error",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(15) > div > div:nth-of-type(5) > div:nth-of-type(2) > a",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.do-you-own-this-website",
+          "purpose": "Opens help documentation for site owners regarding Google Maps integration.",
+          "aliases": [
+            "do you own this website",
+            "website owner help",
+            "fix map key",
+            "map owner guide"
+          ],
+          "category": "help",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "link",
+              "name": "Do you own this website?",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Do you own this website?",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div:nth-of-type(2) > table > tr > td:nth-of-type(1) > a",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.ok",
+          "purpose": "Dismisses the current modal dialog or notification.",
+          "aliases": [
+            "dismiss notification",
+            "confirm message",
+            "click ok",
+            "close popup"
+          ],
+          "category": "dialog",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "OK",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "OK",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div:nth-of-type(2) > table > tr > td:nth-of-type(2) > button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.do-you-own-this-website-2",
+          "purpose": "Opens help documentation for site owners regarding Google Maps integration.",
+          "aliases": [
+            "do you own this website",
+            "website owner help",
+            "fix map error",
+            "map owner information"
+          ],
+          "category": "help",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "link",
+              "name": "Do you own this website?",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Do you own this website?",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div:nth-of-type(3) > table > tr > td:nth-of-type(1) > a",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.ok-2",
+          "purpose": "Dismisses the current modal dialog or notification.",
+          "aliases": [
+            "dismiss dialog",
+            "click ok",
+            "confirm alert",
+            "close message"
+          ],
+          "category": "dialog",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "OK",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "OK",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(2) > div > div:nth-of-type(2) > div > div:nth-of-type(3) > table > tr > td:nth-of-type(2) > button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.more",
+          "purpose": "Opens additional options or details for this item.",
+          "aliases": [
+            "more options",
+            "show more",
+            "view details",
+            "open item menu"
+          ],
+          "category": "general",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(4) > div > div:nth-of-type(2) > div > div > div > div > div > div > table > tbody > tr:nth-of-type(2) > td:nth-of-type(5) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.more-2",
+          "purpose": "Opens additional options or details for this item.",
+          "aliases": [
+            "more options",
+            "show more",
+            "view details",
+            "open item menu"
+          ],
+          "category": "general",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(4) > div > div:nth-of-type(2) > div > div > div > div > div > div > table > tbody > tr:nth-of-type(3) > td:nth-of-type(5) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.more-3",
+          "purpose": "Opens additional options or details for this item.",
+          "aliases": [
+            "more options",
+            "show more",
+            "view details",
+            "open item menu"
+          ],
+          "category": "general",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(4) > div > div:nth-of-type(2) > div > div > div > div > div > div > table > tbody > tr:nth-of-type(4) > td:nth-of-type(5) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.more-4",
+          "purpose": "Opens additional options or details for this item.",
+          "aliases": [
+            "more options",
+            "show more",
+            "view details",
+            "open item menu"
+          ],
+          "category": "general",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(4) > div > div:nth-of-type(2) > div > div > div > div > div > div > table > tbody > tr:nth-of-type(5) > td:nth-of-type(5) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.more-5",
+          "purpose": "Opens additional options or details for this item.",
+          "aliases": [
+            "more options",
+            "show more",
+            "view details",
+            "open item menu"
+          ],
+          "category": "general",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(4) > div > div:nth-of-type(2) > div > div > div > div > div > div > table > tbody > tr:nth-of-type(6) > td:nth-of-type(5) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.more-6",
+          "purpose": "Opens additional options or details for this item.",
+          "aliases": [
+            "more options",
+            "show more",
+            "view details",
+            "open item menu"
+          ],
+          "category": "general",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(4) > div > div:nth-of-type(2) > div > div > div > div > div > div > table > tbody > tr:nth-of-type(7) > td:nth-of-type(5) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.more-7",
+          "purpose": "Opens additional options or details for this item.",
+          "aliases": [
+            "more options",
+            "show more",
+            "view details",
+            "open item menu"
+          ],
+          "category": "general",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(4) > div > div:nth-of-type(2) > div > div > div > div > div > div > table > tbody > tr:nth-of-type(8) > td:nth-of-type(5) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.more-8",
+          "purpose": "Opens additional options or details for this item.",
+          "aliases": [
+            "more options",
+            "show more",
+            "view details",
+            "open item menu"
+          ],
+          "category": "general",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(4) > div > div:nth-of-type(2) > div > div > div > div > div > div > table > tbody > tr:nth-of-type(9) > td:nth-of-type(5) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.more-9",
+          "purpose": "Opens additional options or details for this item.",
+          "aliases": [
+            "more options",
+            "show more",
+            "view details",
+            "open item menu"
+          ],
+          "category": "general",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(4) > div > div:nth-of-type(2) > div > div > div > div > div > div > table > tbody > tr:nth-of-type(10) > td:nth-of-type(5) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "dashboard.more-10",
+          "purpose": "Opens additional options or details for this item.",
+          "aliases": [
+            "more options",
+            "show more",
+            "view details",
+            "open item menu"
+          ],
+          "category": "general",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div:nth-of-type(4) > div > div:nth-of-type(2) > div > div > div > div > div > div > table > tbody > tr:nth-of-type(11) > td:nth-of-type(5) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        }
+      ]
+    },
+    {
+      "path": "/orders",
+      "label": "Orders",
+      "elements": [
+        {
+          "id": "orders.export",
+          "purpose": "Exports the order list to a file.",
+          "aliases": [
+            "export orders",
+            "download orders",
+            "export order list",
+            "download order data",
+            "export data"
+          ],
+          "category": "order-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "Export",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Export",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(1) > span > div > div > button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "orders.more",
+          "purpose": "Opens additional actions and options for this order.",
+          "aliases": [
+            "more options",
+            "order options",
+            "more actions",
+            "order menu",
+            "action menu"
+          ],
+          "category": "order-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div > div > div > div > div > table > tbody > tr:nth-of-type(2) > td:nth-of-type(8) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "orders.more-2",
+          "purpose": "Opens additional actions and options for this order.",
+          "aliases": [
+            "more options",
+            "order options",
+            "more actions",
+            "order menu",
+            "action menu"
+          ],
+          "category": "order-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div > div > div > div > div > table > tbody > tr:nth-of-type(3) > td:nth-of-type(8) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "orders.more-3",
+          "purpose": "Opens additional actions and options for this order.",
+          "aliases": [
+            "more options",
+            "order options",
+            "more actions",
+            "order menu",
+            "action menu"
+          ],
+          "category": "order-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div > div > div > div > div > table > tbody > tr:nth-of-type(4) > td:nth-of-type(8) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "orders.more-4",
+          "purpose": "Opens additional actions and options for this order.",
+          "aliases": [
+            "more options",
+            "order options",
+            "more actions",
+            "order menu",
+            "action menu"
+          ],
+          "category": "order-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div > div > div > div > div > table > tbody > tr:nth-of-type(5) > td:nth-of-type(8) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "orders.more-5",
+          "purpose": "Opens additional actions and options for this order.",
+          "aliases": [
+            "more options",
+            "order options",
+            "more actions",
+            "order menu",
+            "action menu"
+          ],
+          "category": "order-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div > div > div > div > div > table > tbody > tr:nth-of-type(6) > td:nth-of-type(8) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "orders.more-6",
+          "purpose": "Opens additional actions and options for this order.",
+          "aliases": [
+            "more options",
+            "order options",
+            "more actions",
+            "order menu",
+            "action menu"
+          ],
+          "category": "order-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div > div > div > div > div > table > tbody > tr:nth-of-type(7) > td:nth-of-type(8) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "orders.more-7",
+          "purpose": "Opens additional actions and options for this order.",
+          "aliases": [
+            "more options",
+            "order options",
+            "more actions",
+            "order menu",
+            "action menu"
+          ],
+          "category": "order-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div > div > div > div > div > table > tbody > tr:nth-of-type(8) > td:nth-of-type(8) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "orders.more-8",
+          "purpose": "Opens additional actions and options for this order.",
+          "aliases": [
+            "more options",
+            "order options",
+            "more actions",
+            "order menu",
+            "action menu"
+          ],
+          "category": "order-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div > div > div > div > div > table > tbody > tr:nth-of-type(9) > td:nth-of-type(8) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "orders.more-9",
+          "purpose": "Opens additional actions and options for this order.",
+          "aliases": [
+            "more options",
+            "order options",
+            "more actions",
+            "order menu",
+            "action menu"
+          ],
+          "category": "order-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div > div > div > div > div > table > tbody > tr:nth-of-type(10) > td:nth-of-type(8) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "orders.more-10",
+          "purpose": "Opens additional actions and options for this order.",
+          "aliases": [
+            "more options",
+            "order options",
+            "more actions",
+            "order menu",
+            "action menu"
+          ],
+          "category": "order-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "more",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(2) > div > div > div > div > div > div > div > table > tbody > tr:nth-of-type(11) > td:nth-of-type(8) > span",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "orders.page-size",
+          "purpose": "Selects the number of orders shown per page.",
+          "aliases": [
+            "page size",
+            "orders per page",
+            "items per page",
+            "rows per page",
+            "change page size"
+          ],
+          "category": "pagination",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "combobox",
+              "name": "Page Size",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#rc_select_3",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        }
+      ]
+    },
+    {
+      "path": "/customers",
+      "label": "Customers",
+      "elements": [
+        {
+          "id": "customers.export",
+          "purpose": "Exports the customer list to a file.",
+          "aliases": [
+            "export customers",
+            "download customer list",
+            "export data",
+            "download customers",
+            "export table"
+          ],
+          "category": "customer-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "Export",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Export",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(1) > span > div > div > button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "customers.page-size",
+          "purpose": "Selects the number of customers displayed per page in the list.",
+          "aliases": [
+            "change page size",
+            "items per page",
+            "customers per page",
+            "rows per page",
+            "set page size"
+          ],
+          "category": "pagination",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "combobox",
+              "name": "Page Size",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#rc_select_3",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        }
+      ]
+    },
+    {
+      "path": "/products",
+      "label": "Products",
+      "elements": [
+        {
+          "id": "products.add-new-product",
+          "purpose": "Opens a form or page to create and add a new product to the catalog.",
+          "aliases": [
+            "add new product",
+            "add product",
+            "create product",
+            "new product",
+            "add a product"
+          ],
+          "category": "product-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "Add new product",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Add new product",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(1) > span > div > div > div > div:nth-of-type(2) > a > button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "products.page-size",
+          "purpose": "Selects the number of products to display per page in the list.",
+          "aliases": [
+            "page size",
+            "items per page",
+            "products per page",
+            "change page size",
+            "rows per page"
+          ],
+          "category": "pagination",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "combobox",
+              "name": "Page Size",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#rc_select_3",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        }
+      ]
+    },
+    {
+      "path": "/categories",
+      "label": "Categories",
+      "elements": []
+    },
+    {
+      "path": "/stores",
+      "label": "Stores",
+      "elements": [
+        {
+          "id": "stores.add-new-store",
+          "purpose": "Opens a form to add a new store to the system.",
+          "aliases": [
+            "add new store",
+            "add store",
+            "create store",
+            "new store",
+            "create new store"
+          ],
+          "category": "store-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "Add New Store",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Add New Store",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(1) > span > div > div > div > div:nth-of-type(2) > a > button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        }
+      ]
+    },
+    {
+      "path": "/couriers",
+      "label": "Couriers",
+      "elements": [
+        {
+          "id": "couriers.add-new-courier",
+          "purpose": "Opens the form to add a new courier to the list.",
+          "aliases": [
+            "add new courier",
+            "add courier",
+            "create courier",
+            "new courier",
+            "register courier"
+          ],
+          "category": "courier-management",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "button",
+              "name": "Add new courier",
+              "confidence": 0.8
+            },
+            {
+              "kind": "text",
+              "value": "Add new courier",
+              "confidence": 0.6
+            },
+            {
+              "kind": "css",
+              "value": "#root > div > div > main > div > div > div > div > div:nth-of-type(1) > span > div > div > div > div > a > button",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        },
+        {
+          "id": "couriers.page-size",
+          "purpose": "Changes the number of couriers displayed per page.",
+          "aliases": [
+            "page size",
+            "change page size",
+            "items per page",
+            "couriers per page",
+            "rows per page",
+            "set page size"
+          ],
+          "category": "pagination",
+          "anchors": [
+            {
+              "kind": "role-name",
+              "role": "combobox",
+              "name": "Page Size",
+              "confidence": 0.8
+            },
+            {
+              "kind": "css",
+              "value": "#rc_select_3",
+              "confidence": 0.3
+            }
+          ],
+          "destructive": false
+        }
+      ]
+    }
+  ]
+}

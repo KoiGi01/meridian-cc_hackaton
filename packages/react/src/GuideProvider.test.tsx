@@ -666,4 +666,56 @@ describe('GuideProvider', () => {
       })();
     });
   });
+  describe('re-resolving after a re-render', () => {
+    // Regression from the Refine demo: after navigating, the target resolved
+    // against the first render, then the data load re-rendered the table and
+    // replaced the node. The light tracked a detached element and vanished.
+    it('finds the element again when the host replaces the DOM node', async () => {
+      // A detached node has a zero rect in a real browser. Make the mock honest.
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+        const r = this.isConnected ? rect : { x: 0, y: 0, width: 0, height: 0 };
+        return { ...r, top: r.y, left: r.x, right: r.x + r.width, bottom: r.y + r.height, toJSON: () => '' } as DOMRect;
+      });
+      function Host() {
+        const { spotlightId } = useGuide();
+        const [gen, setGen] = useState(0);
+        return (
+          <div>
+            <button data-testid="ask" onClick={() => spotlightId('team.invite-member')}>
+              ask
+            </button>
+            <button data-testid="rerender" onClick={() => setGen((g) => g + 1)}>
+              rerender
+            </button>
+            {/* A changing key forces React to unmount and remount the node. */}
+            <button key={gen} data-testid="invite-btn">
+              Invite member
+            </button>
+          </div>
+        );
+      }
+      render(
+        <GuideProvider manifest={twoRouteManifest} widget={false}>
+          <Host />
+        </GuideProvider>,
+      );
+      act(() => screen.getByTestId('ask').click());
+      expect(shadow()!.querySelector('[data-pointto-cutout]')).not.toBeNull();
+
+      const before = screen.getByTestId('invite-btn');
+      // Remount flushes at the end of this act.
+      act(() => screen.getByTestId('rerender').click());
+      expect(before.isConnected).toBe(false);
+
+      await act(async () => {
+        // MutationObserver callbacks are microtasks; let them run.
+        await Promise.resolve();
+        await new Promise((r) => setTimeout(r, 0));
+        // In a browser the body ResizeObserver fires on the re-layout and the
+        // overlay re-reads the target's rect. Simulate that.
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(shadow()!.querySelector('[data-pointto-cutout]')).not.toBeNull();
+    });
+  });
 });

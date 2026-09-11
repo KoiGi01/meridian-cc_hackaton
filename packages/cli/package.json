@@ -1,0 +1,18 @@
+{
+  "name": "pointto-cli",
+  "version": "0.0.1",
+  "description": "Scans a running app with Playwright and generates the pointto manifest. Run once, at setup.",
+  "license": "MIT",
+  "type": "module",
+  "bin": { "pointto-cli": "./dist/index.js" },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": { "build": "tsup" },
+  "dependencies": {
+    "pointto-core": "workspace:*",
+    "playwright": "^1.49.0"
+  },
+  "devDependencies": { "@types/node": "^20.0.0" },
+  "publishConfig": { "access": "public" }
+}

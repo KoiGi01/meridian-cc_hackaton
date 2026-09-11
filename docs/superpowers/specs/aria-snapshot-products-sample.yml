@@ -1,0 +1,320 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - link [ref=e8] [cursor=pointer]:
+          - /url: /
+        - menu [ref=e20]:
+          - menuitem [ref=e21] [cursor=pointer]:
+            - img "dashboard" [ref=e22]
+            - link "Dashboard" [ref=e26]:
+              - /url: /
+          - menuitem [ref=e27] [cursor=pointer]:
+            - img "shopping" [ref=e28]
+            - link "Orders" [ref=e32]:
+              - /url: /orders
+          - menuitem [ref=e33] [cursor=pointer]:
+            - img "user" [ref=e34]
+            - link "Customers" [ref=e38]:
+              - /url: /customers
+          - menuitem [ref=e39] [cursor=pointer]:
+            - img "unordered-list" [ref=e40]
+            - link "Products" [ref=e44]:
+              - /url: /products
+          - menuitem [ref=e45] [cursor=pointer]:
+            - img "tags" [ref=e46]
+            - link "Categories" [ref=e50]:
+              - /url: /categories
+          - menuitem [ref=e51] [cursor=pointer]:
+            - img "shop" [ref=e52]
+            - link "Stores" [ref=e56]:
+              - /url: /stores
+          - menuitem [ref=e57] [cursor=pointer]:
+            - link "Couriers" [ref=e62]:
+              - /url: /couriers
+          - menuitem "logout Logout" [ref=e63] [cursor=pointer]:
+            - img "logout" [ref=e64]
+            - generic [ref=e67]: Logout
+      - button [ref=e69] [cursor=pointer]:
+        - img "left" [ref=e70]
+    - generic [ref=e73]:
+      - banner [ref=e74]:
+        - generic [ref=e75]:
+          - generic [ref=e81] [cursor=pointer]:
+            - img "search" [ref=e83]
+            - combobox "Search by Store ID, E-mail, Keyword" [ref=e86]
+            - generic [ref=e87]: /
+          - generic [ref=e90]:
+            - button "English down" [ref=e92] [cursor=pointer]:
+              - generic [ref=e93]:
+                - generic [ref=e94]: English
+                - img "down" [ref=e96]
+            - button [ref=e100] [cursor=pointer]
+            - generic [ref=e108]:
+              - generic [ref=e109]: James Sullivan
+              - img "James Sullivan" [ref=e113]
+      - main [ref=e114]:
+        - generic [ref=e118]:
+          - generic [ref=e119]:
+            - generic [ref=e120]:
+              - heading "Products" [level=4] [ref=e122]
+              - generic:
+                - heading [level=5]
+            - generic [ref=e126]:
+              - radiogroup "segmented control" [ref=e128]:
+                - generic [ref=e129]:
+                  - generic [ref=e130] [cursor=pointer]:
+                    - radio "unordered-list" [checked]
+                    - img "unordered-list" [ref=e133]
+                  - generic [ref=e136] [cursor=pointer]:
+                    - radio "appstore"
+                    - img "appstore" [ref=e139]
+              - link [ref=e143] [cursor=pointer]:
+                - /url: /products/new
+                - button "plus-square Add new product" [ref=e144]:
+                  - img "plus-square" [ref=e146]
+                  - generic [ref=e150]: Add new product
+          - generic [ref=e155]:
+            - table [ref=e159]:
+              - rowgroup [ref=e167]:
+                - row [ref=e168]:
+                  - 'columnheader "ID # search" [ref=e169]':
+                    - generic [ref=e170]:
+                      - generic [ref=e171]: "ID #"
+                      - button [ref=e172] [cursor=pointer]:
+                        - img "search" [ref=e173]
+                  - columnheader "Images" [ref=e176]
+                  - columnheader "Name search" [ref=e177]:
+                    - generic [ref=e178]:
+                      - generic [ref=e179]: Name
+                      - button [ref=e180] [cursor=pointer]:
+                        - img "search" [ref=e181]
+                  - columnheader "Description search" [ref=e184]:
+                    - generic [ref=e185]:
+                      - generic [ref=e186]: Description
+                      - button [ref=e187] [cursor=pointer]:
+                        - img "search" [ref=e188]
+                  - columnheader "Price" [ref=e191] [cursor=pointer]
+                  - columnheader "Category filter" [ref=e202]:
+                    - generic [ref=e203]:
+                      - generic [ref=e204]: Category
+                      - button [ref=e205] [cursor=pointer]:
+                        - img "filter" [ref=e206]
+                  - columnheader "Status" [ref=e209] [cursor=pointer]:
+                    - generic [ref=e210]:
+                      - generic [ref=e211]: Status
+                      - button [ref=e222]:
+                        - img "filter" [ref=e223]
+                  - columnheader "Actions" [ref=e226]
+              - rowgroup [ref=e227]:
+                - generic:
+                  - generic: "ID #"
+                  - button
+                - generic:
+                  - generic: Name
+                  - button
+                - generic:
+                  - generic: Description
+                  - button
+                - generic: Price
+                - generic:
+                  - generic: Category
+                  - button
+                - generic:
+                  - generic: Status
+                  - button
+                - row [ref=e228]:
+                  - cell "#1" [ref=e229]
+                  - cell [ref=e231]:
+                    - img "Ice Cream" [ref=e233]
+                  - cell "Ice Cream" [ref=e234]
+                  - cell "Your choice of vanilla, chocolate, or strawberry ice cream, served with whipped cream and a cherry on top." [ref=e235]
+                  - cell "USD 4.00" [ref=e237]
+                  - cell "🍩 Deserts" [ref=e238]
+                  - cell "check-circle Available" [ref=e239]:
+                    - generic [ref=e240]:
+                      - img "check-circle" [ref=e241]
+                      - generic [ref=e245]: Available
+                  - cell [ref=e246]:
+                    - button [ref=e247] [cursor=pointer]:
+                      - img "eye" [ref=e249]
+                - row [ref=e252]:
+                  - cell "#2" [ref=e253]
+                  - cell [ref=e255]:
+                    - img "Garlic Bread" [ref=e257]
+                  - cell "Garlic Bread" [ref=e258]
+                  - cell "Warm, buttery bread seasoned with garlic and herbs, toasted to perfection." [ref=e259]
+                  - cell "USD 6.00" [ref=e261]
+                  - cell "🍟 Starters" [ref=e262]
+                  - cell "check-circle Available" [ref=e263]:
+                    - generic [ref=e264]:
+                      - img "check-circle" [ref=e265]
+                      - generic [ref=e269]: Available
+                  - cell [ref=e270]:
+                    - button [ref=e271] [cursor=pointer]:
+                      - img "eye" [ref=e273]
+                - row [ref=e276]:
+                  - cell "#3" [ref=e277]
+                  - cell [ref=e279]:
+                    - img "Turkey" [ref=e281]
+                  - cell "Turkey" [ref=e282]
+                  - cell "Grilled turkey breast, seasoned with herbs, and served with cranberry sauce." [ref=e283]
+                  - cell "USD 15.00" [ref=e285]
+                  - cell "🍖 Grilled Meat" [ref=e286]
+                  - cell "check-circle Available" [ref=e287]:
+                    - generic [ref=e288]:
+                      - img "check-circle" [ref=e289]
+                      - generic [ref=e293]: Available
+                  - cell [ref=e294]:
+                    - button [ref=e295] [cursor=pointer]:
+                      - img "eye" [ref=e297]
+                - row [ref=e300]:
+                  - cell "#4" [ref=e301]
+                  - cell [ref=e303]:
+                    - img "Greek Salad" [ref=e305]
+                  - cell "Greek Salad" [ref=e306]
+                  - cell "Tomatoes, cucumbers, onions, olives, and feta cheese, dressed with olive oil and herbs. A refreshing Mediterranean option." [ref=e307]
+                  - cell "USD 10.00" [ref=e309]
+                  - cell "🥗 Salads" [ref=e310]
+                  - cell "stop Unavailable" [ref=e311]:
+                    - generic [ref=e312]:
+                      - img "stop" [ref=e313]
+                      - generic [ref=e316]: Unavailable
+                  - cell [ref=e317]:
+                    - button [ref=e318] [cursor=pointer]:
+                      - img "eye" [ref=e320]
+                - row [ref=e323]:
+                  - cell "#5" [ref=e324]
+                  - cell [ref=e326]:
+                    - img "Chicken Burger" [ref=e328]
+                  - cell "Chicken Burger" [ref=e329]
+                  - cell "Grilled or crispy chicken breast with lettuce, tomato, and mayo. Simple and delicious." [ref=e330]
+                  - cell "USD 9.00" [ref=e332]
+                  - cell "🍔 Burgers" [ref=e333]
+                  - cell "check-circle Available" [ref=e334]:
+                    - generic [ref=e335]:
+                      - img "check-circle" [ref=e336]
+                      - generic [ref=e340]: Available
+                  - cell [ref=e341]:
+                    - button [ref=e342] [cursor=pointer]:
+                      - img "eye" [ref=e344]
+                - row [ref=e347]:
+                  - cell "#6" [ref=e348]
+                  - cell [ref=e350]:
+                    - img "Pork" [ref=e352]
+                  - cell "Pork" [ref=e353]
+                  - cell "Grilled pork chops seasoned with a savory rub and served with apple compote." [ref=e354]
+                  - cell "USD 16.00" [ref=e356]
+                  - cell "🍖 Grilled Meat" [ref=e357]
+                  - cell "stop Unavailable" [ref=e358]:
+                    - generic [ref=e359]:
+                      - img "stop" [ref=e360]
+                      - generic [ref=e363]: Unavailable
+                  - cell [ref=e364]:
+                    - button [ref=e365] [cursor=pointer]:
+                      - img "eye" [ref=e367]
+                - row [ref=e370]:
+                  - cell "#7" [ref=e371]
+                  - cell [ref=e373]:
+                    - img "Mushroom Swiss Burger" [ref=e375]
+                  - cell "Mushroom Swiss Burger" [ref=e376]
+                  - cell "A beef patty topped with sautéed mushrooms and Swiss cheese. A rich and savory option." [ref=e377]
+                  - cell "USD 10.50" [ref=e379]
+                  - cell "🍔 Burgers" [ref=e380]
+                  - cell "check-circle Available" [ref=e381]:
+                    - generic [ref=e382]:
+                      - img "check-circle" [ref=e383]
+                      - generic [ref=e387]: Available
+                  - cell [ref=e388]:
+                    - button [ref=e389] [cursor=pointer]:
+                      - img "eye" [ref=e391]
+                - row [ref=e394]:
+                  - cell "#8" [ref=e395]
+                  - cell [ref=e397]:
+                    - img "Apple Pie" [ref=e399]
+                  - cell "Apple Pie" [ref=e400]
+                  - cell "Classic apple pie with a flaky crust, filled with cinnamon-spiced apples, served with vanilla ice cream." [ref=e401]
+                  - cell "USD 6.00" [ref=e403]
+                  - cell "🍩 Deserts" [ref=e404]
+                  - cell "check-circle Available" [ref=e405]:
+                    - generic [ref=e406]:
+                      - img "check-circle" [ref=e407]
+                      - generic [ref=e411]: Available
+                  - cell [ref=e412]:
+                    - button [ref=e413] [cursor=pointer]:
+                      - img "eye" [ref=e415]
+                - row [ref=e418]:
+                  - cell "#9" [ref=e419]
+                  - cell [ref=e421]:
+                    - img "Vegetarian Pizza" [ref=e423]
+                  - cell "Vegetarian Pizza" [ref=e424]
+                  - cell "A colorful combination of fresh vegetables such as bell peppers, onions, olives, and mushrooms." [ref=e425]
+                  - cell "USD 14.00" [ref=e427]
+                  - cell "🍕 Pizzas" [ref=e428]
+                  - cell "check-circle Available" [ref=e429]:
+                    - generic [ref=e430]:
+                      - img "check-circle" [ref=e431]
+                      - generic [ref=e435]: Available
+                  - cell [ref=e436]:
+                    - button [ref=e437] [cursor=pointer]:
+                      - img "eye" [ref=e439]
+                - row [ref=e442]:
+                  - cell "#10" [ref=e443]
+                  - cell [ref=e445]:
+                    - img "Shrimp" [ref=e447]
+                  - cell "Shrimp" [ref=e448]
+                  - cell "Skewered and grilled shrimp, seasoned with garlic and herbs, served with a side of cocktail sauce." [ref=e449]
+                  - cell "USD 17.00" [ref=e451]
+                  - cell "🍖 Grilled Meat" [ref=e452]
+                  - cell "check-circle Available" [ref=e453]:
+                    - generic [ref=e454]:
+                      - img "check-circle" [ref=e455]
+                      - generic [ref=e459]: Available
+                  - cell [ref=e460]:
+                    - button [ref=e461] [cursor=pointer]:
+                      - img "eye" [ref=e463]
+            - list [ref=e466]:
+              - listitem [ref=e467]:
+                - generic [ref=e468]:
+                  - text: "79"
+                  - generic [ref=e469]: Products in total
+              - listitem "Previous Page" [ref=e470]:
+                - link [disabled] [ref=e471] [cursor=pointer]:
+                  - /url: /products?pageSize=10&currentPage=1&filters[0][field]=description&filters[0][operator]=contains&filters[0][value]=&filters[1][field]=name&filters[1][operator]=contains&filters[1][value]=&filters[2][field]=category.id&filters[2][operator]=in&filters[3][field]=isActive&filters[3][operator]=in
+                  - button [disabled] [ref=e472]:
+                    - img "left" [ref=e473]
+              - listitem "1" [ref=e476] [cursor=pointer]:
+                - link "1" [ref=e477]:
+                  - /url: /products?pageSize=10&currentPage=1&filters[0][field]=description&filters[0][operator]=contains&filters[0][value]=&filters[1][field]=name&filters[1][operator]=contains&filters[1][value]=&filters[2][field]=category.id&filters[2][operator]=in&filters[3][field]=isActive&filters[3][operator]=in
+              - listitem "2" [ref=e478] [cursor=pointer]:
+                - link "2" [ref=e479]:
+                  - /url: /products?pageSize=10&currentPage=1&filters[0][field]=description&filters[0][operator]=contains&filters[0][value]=&filters[1][field]=name&filters[1][operator]=contains&filters[1][value]=&filters[2][field]=category.id&filters[2][operator]=in&filters[3][field]=isActive&filters[3][operator]=in
+              - listitem "3" [ref=e480] [cursor=pointer]:
+                - link "3" [ref=e481]:
+                  - /url: /products?pageSize=10&currentPage=1&filters[0][field]=description&filters[0][operator]=contains&filters[0][value]=&filters[1][field]=name&filters[1][operator]=contains&filters[1][value]=&filters[2][field]=category.id&filters[2][operator]=in&filters[3][field]=isActive&filters[3][operator]=in
+              - listitem "4" [ref=e482] [cursor=pointer]:
+                - link "4" [ref=e483]:
+                  - /url: /products?pageSize=10&currentPage=1&filters[0][field]=description&filters[0][operator]=contains&filters[0][value]=&filters[1][field]=name&filters[1][operator]=contains&filters[1][value]=&filters[2][field]=category.id&filters[2][operator]=in&filters[3][field]=isActive&filters[3][operator]=in
+              - listitem "5" [ref=e484] [cursor=pointer]:
+                - link "5" [ref=e485]:
+                  - /url: /products?pageSize=10&currentPage=1&filters[0][field]=description&filters[0][operator]=contains&filters[0][value]=&filters[1][field]=name&filters[1][operator]=contains&filters[1][value]=&filters[2][field]=category.id&filters[2][operator]=in&filters[3][field]=isActive&filters[3][operator]=in
+              - listitem "Next 5 Pages" [ref=e486] [cursor=pointer]:
+                - link "double-right •••" [ref=e487]:
+                  - /url: /products?pageSize=10&currentPage=1&filters[0][field]=description&filters[0][operator]=contains&filters[0][value]=&filters[1][field]=name&filters[1][operator]=contains&filters[1][value]=&filters[2][field]=category.id&filters[2][operator]=in&filters[3][field]=isActive&filters[3][operator]=in
+                  - generic [ref=e488]:
+                    - img "double-right" [ref=e489]
+                    - generic [ref=e492]: •••
+              - listitem "8" [ref=e493] [cursor=pointer]:
+                - link "8" [ref=e494]:
+                  - /url: /products?pageSize=10&currentPage=1&filters[0][field]=description&filters[0][operator]=contains&filters[0][value]=&filters[1][field]=name&filters[1][operator]=contains&filters[1][value]=&filters[2][field]=category.id&filters[2][operator]=in&filters[3][field]=isActive&filters[3][operator]=in
+              - listitem "Next Page" [ref=e495] [cursor=pointer]:
+                - link [ref=e496]:
+                  - /url: /products?pageSize=10&currentPage=1&filters[0][field]=description&filters[0][operator]=contains&filters[0][value]=&filters[1][field]=name&filters[1][operator]=contains&filters[1][value]=&filters[2][field]=category.id&filters[2][operator]=in&filters[3][field]=isActive&filters[3][operator]=in
+                  - button [ref=e497]:
+                    - img "right" [ref=e498]
+              - listitem [ref=e501]:
+                - generic "Page Size" [ref=e502] [cursor=pointer]:
+                  - generic [ref=e504]:
+                    - combobox "Page Size" [ref=e506]
+                    - generic "10 / page" [ref=e507]
+  - button "Open guide" [ref=e508] [cursor=pointer]: "?"

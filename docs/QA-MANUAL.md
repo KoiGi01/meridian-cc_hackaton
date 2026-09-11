@@ -21,7 +21,7 @@ npm install -g pnpm     # only if `pnpm -v` fails
 pnpm install            # takes about 30 seconds
 ```
 
-Verified on a clean clone: `pnpm install` then `pnpm test` gives 139 passing tests.
+Verified on a clean clone: `pnpm install` then `pnpm test` gives 174 passing tests.
 
 To start the test page:
 
@@ -37,7 +37,7 @@ To run the automated tests:
 pnpm test
 ```
 
-Everything should say passed. As of Checkpoint 4 there are 139 automated tests.
+Everything should say passed. As of Checkpoint 5 there are 174 automated tests.
 
 To start the **real third-party demo app** (added in Checkpoint 2):
 
@@ -282,3 +282,55 @@ Added after the first real-microphone test (2026-09-11). The chat panel was bloc
 | 4.20 | Turn on "reduce motion" in your OS and repeat 4.14 | No animation: a steady amber ring while it speaks, nothing more. | |
 
 Voice was changed from `lola` to `anna` after the first test: the same English sentence took 18 s with `lola` and 8 s with `anna`, and `lola`'s English was hard to understand. The raw audio was checked outside the browser (`server/scripts/greeting-wav.ts` writes a WAV straight from the API) and sounded right, which is how the fault was pinned on the browser side.
+
+---
+
+## Checkpoint 5 — The scanner generates the manifest
+
+**Finished:** 2026-09-11
+
+**What was built.** Until now the manifest — the file that tells pointto what exists in the app — was written by hand. Now a command generates it: it opens the app in a hidden browser, reads each screen the way a screen reader would, and asks Gemini to describe every button and link in plain words. The demo app now runs on a *generated* manifest, not a hand-written one.
+
+**What you are really testing.** That a developer with zero knowledge of pointto can point it at their app and get something usable — and that the output is honest: no invented descriptions, no test ids that don't exist, a readable file they can correct by hand.
+
+### Setup
+
+`GEMINI_API_KEY` must be in `.env` (ask the owner). The demo app must be running on port 5190.
+
+```bash
+pnpm build
+node packages/cli/dist/index.js scan --config examples/demo-app/guide.config.json
+```
+
+Expect it to take **several minutes** — Gemini's free tier is slow and sometimes says "overloaded", which the tool retries. It writes `examples/demo-app/src/pointto.generated.manifest.json`.
+
+| # | What to do | What should happen | Pass / Fail |
+|---|---|---|---|
+| 5.1 | Run the command above | It lists each route with a count of elements, says how many were "hoisted" (shared by every screen), then labels each route, then prints a summary. No red errors. | |
+| 5.2 | Open the generated `.json` file | Readable. Every element has an `id` like `products.add-new-product`, a one-sentence `purpose`, a few `aliases`, and 2–3 `anchors`. **Zero** `testid` anchors — this app has none, and the tool must not invent them. | |
+| 5.3 | Find `app.logout` in the file | Its purpose says it logs out; aliases include natural phrases like "sign out". It sits under the route with path `"*"` (Everywhere), not repeated on every screen. | |
+| 5.4 | Count how many elements are on the `/categories` route | Zero or very few. That screen has no unique controls beyond the shared sidebar. | |
+| 5.5 | Run again with `--no-llm` added, to a scratch output (edit `output` in a copy of the config) | Finishes in under a minute. Same elements, but every `purpose` is `null` and `aliases` are empty. This is the offline skeleton. | |
+| 5.6 | Restart the demo app (`pnpm --filter finefoods-antd dev:pointto`), open the widget, ask **"how do I add a store?"** | Still works — the app is now running on the *generated* manifest. | |
+| 5.7 | Ask **"how do I log out?"** | The Logout item in the sidebar lights up. That element came from the scanner, not from any hand-written file. | |
+| 5.8 | Ask **"where do I search?"** | The search box at the top lights up. It has no visible label — it is named by its placeholder text — and the scanner found it anyway. | |
+| 5.9 | Break the config: change `baseUrl` to a port where nothing runs, and run the scan | A clear error naming the URL, not a hang or a stack trace. | |
+| 5.10 | Remove `GEMINI_API_KEY` from `.env` (temporarily) and run without `--no-llm` | A clear error saying the key is missing, before the browser even opens. Put the key back. | |
+
+### Known and expected
+
+- **Slow.** A full labeled scan of 7 routes takes several minutes on the free tier. Run once, commit the file, done — this is not something that runs at app startup.
+- **Gemini says "overloaded" sometimes.** The tool retries with backoff. If a route still fails after retries, it gets `null` purposes and the summary says which route, so you can re-run.
+- **Pagination and icon-only buttons are skipped on purpose.** "1", "2", "•••" and unnamed icon buttons are not things a user asks for by name.
+- **Modals and dropdowns are not scanned.** Only what is on screen when the route loads. Controls inside a menu that has to be opened first are invisible to it (BUILD-SPEC §11 calls this out as a known hard part).
+- **The hand-written manifest still exists** at `pointto.manifest.json` for comparison, but the app no longer uses it.
+
+### Found during this checkpoint
+
+**Every route after the first came back empty.** After the first navigation, Playwright prefixes element handles with the frame (`f1e26` instead of `e26`) and the parser only accepted the bare form. One regex, one regression test.
+
+**The model name in my head was stale.** `gemini-2.5-flash` is no longer available to new keys; the API said so in plain words and pointed at `gemini-3.6-flash`. Verified live, not assumed.
+
+**The search box was invisible to both scanner and runtime.** It has no label; browsers derive its name from the `placeholder`. Both sides now do the same.
+
+**Free-tier 503s killed the whole scan.** Now retried with backoff, and a route that still fails degrades to skeleton labels instead of losing everything.

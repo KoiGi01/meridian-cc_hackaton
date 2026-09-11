@@ -11,16 +11,17 @@ function walk(dir: string): string[] {
 }
 
 /**
- * The API key lives in server/ and .env only. Nothing under packages/ may
- * reference it, because everything under packages/ ships to the browser.
- * (BUILD-SPEC 5.6: "Never ship the API key to the client.")
+ * API keys live in server/, the CLI, and .env only. The two packages that
+ * ship to the browser — pointto-core and pointto — must never reference one.
+ * (BUILD-SPEC 5.6: "Never ship the API key to the client.") pointto-cli is
+ * a Node tool run on the developer's machine, so it is out of scope.
  */
-describe('published packages never touch the API key', () => {
-  it('no file under packages/ mentions ASSEMBLYAI_API_KEY or a Bearer header', () => {
+describe('browser packages never touch an API key', () => {
+  it('no file under packages/core or packages/react mentions an API key env var or a Bearer header', () => {
     const root = resolve(import.meta.dirname, '../..');
-    const offenders = walk(root)
+    const offenders = [...walk(resolve(root, 'core')), ...walk(resolve(root, 'react'))]
       .filter((f) => !f.endsWith('no-secrets.test.ts'))
-      .filter((f) => /ASSEMBLYAI_API_KEY|Bearer /.test(readFileSync(f, 'utf8')));
+      .filter((f) => /ASSEMBLYAI_API_KEY|GEMINI_API_KEY|POINTTO_LLM_API_KEY|Bearer /.test(readFileSync(f, 'utf8')));
     expect(offenders).toEqual([]);
   });
 });
