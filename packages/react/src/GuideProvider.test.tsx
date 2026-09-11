@@ -183,4 +183,112 @@ describe('GuideProvider', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<Harness />)).toThrowError(/GuideProvider/);
   });
+
+  describe('spotlightId', () => {
+    const manifest = {
+      version: 1 as const,
+      generatedAt: '2026-09-12T00:00:00Z',
+      baseUrl: 'http://localhost:5173',
+      routes: [
+        {
+          path: '/',
+          label: 'Home',
+          elements: [
+            {
+              id: 'team.invite-member',
+              purpose: 'Opens the invite dialog',
+              aliases: ['add someone'],
+              anchors: [
+                { kind: 'testid' as const, value: 'invite-btn', confidence: 1 },
+                { kind: 'text' as const, value: 'Invite member', confidence: 0.6 },
+              ],
+              destructive: false,
+            },
+          ],
+        },
+      ],
+    };
+
+    function IdHarness({ id }: { id: string }) {
+      const { spotlightId, lastOutcome } = useGuide();
+      return (
+        <div>
+          <button data-testid="ask" onClick={() => spotlightId(id)}>
+            ask
+          </button>
+          <span data-testid="status">{lastOutcome?.status ?? 'none'}</span>
+          <span data-testid="won">
+            {lastOutcome?.status === 'resolved' ? lastOutcome.anchorKind : ''}
+          </span>
+          <button data-testid="invite-btn">Invite member</button>
+        </div>
+      );
+    }
+
+    it('resolves a manifest id and lights the matching element', () => {
+      render(
+        <GuideProvider manifest={manifest}>
+          <IdHarness id="team.invite-member" />
+        </GuideProvider>,
+      );
+      act(() => screen.getByTestId('ask').click());
+      expect(screen.getByTestId('status').textContent).toBe('resolved');
+      expect(screen.getByTestId('won').textContent).toBe('testid');
+      expect(shadow()!.querySelector('[data-pointto-cutout]')).not.toBeNull();
+    });
+
+    it('reports not-found and lights nothing when the id is not in the manifest', () => {
+      render(
+        <GuideProvider manifest={manifest}>
+          <IdHarness id="team.nonexistent" />
+        </GuideProvider>,
+      );
+      act(() => screen.getByTestId('ask').click());
+      expect(screen.getByTestId('status').textContent).toBe('not-found');
+      expect(shadow()!.querySelector('[data-pointto-cutout]')).toBeNull();
+    });
+
+    // Regression: asking for the same element twice used to be a silent no-op,
+    // because the overlay effect keyed only on target identity. A user who asks,
+    // scrolls away, and asks again is the common case, not an edge case.
+    it('re-scrolls to the target when the same element is requested again', () => {
+      const scrollSpy = vi.fn();
+      HTMLElement.prototype.scrollIntoView = scrollSpy;
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+        () =>
+          ({
+            x: 10,
+            y: 5000,
+            width: 100,
+            height: 30,
+            top: 5000,
+            left: 10,
+            right: 110,
+            bottom: 5030,
+            toJSON: () => '',
+          }) as DOMRect,
+      );
+
+      render(
+        <GuideProvider manifest={manifest}>
+          <IdHarness id="team.invite-member" />
+        </GuideProvider>,
+      );
+
+      act(() => screen.getByTestId('ask').click());
+      act(() => screen.getByTestId('ask').click());
+
+      expect(scrollSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('reports not-found when no manifest was supplied at all', () => {
+      render(
+        <GuideProvider>
+          <IdHarness id="team.invite-member" />
+        </GuideProvider>,
+      );
+      act(() => screen.getByTestId('ask').click());
+      expect(screen.getByTestId('status').textContent).toBe('not-found');
+    });
+  });
 });

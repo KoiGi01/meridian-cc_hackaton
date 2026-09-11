@@ -1,5 +1,5 @@
 import { useGuide } from '@pointto/react';
-import { useRef, useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 
 const panel: CSSProperties = {
   border: '1px solid #d4d4d8',
@@ -13,6 +13,7 @@ const bar: CSSProperties = {
   display: 'flex',
   gap: 8,
   flexWrap: 'wrap',
+  alignItems: 'center',
   position: 'sticky',
   top: 0,
   background: '#fafafa',
@@ -20,22 +21,63 @@ const bar: CSSProperties = {
   zIndex: 10,
 };
 
+const readout: CSSProperties = {
+  font: '13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace',
+  background: '#18181b',
+  color: '#e4e4e7',
+  borderRadius: 8,
+  padding: '10px 14px',
+  margin: '8px 0 0',
+};
+
 export function App() {
-  const inviteRef = useRef<HTMLButtonElement>(null);
-  const billingRef = useRef<HTMLButtonElement>(null);
-  const { spotlight, clear } = useGuide();
+  const { spotlightId, clear, lastOutcome } = useGuide();
   const [clicks, setClicks] = useState(0);
 
+  // The two ways a host app breaks a manifest: the test id disappears in a
+  // refactor, and the visible label gets reworded by a designer.
+  const [testIdBroken, setTestIdBroken] = useState(false);
+  const [renamed, setRenamed] = useState(false);
+  const [removed, setRemoved] = useState(false);
+
+  const inviteProps = testIdBroken ? {} : { 'data-testid': 'invite-member-btn' };
+
   return (
-    <main style={{ font: '16px/1.5 system-ui, sans-serif', maxWidth: 720, margin: '0 auto', padding: 24 }}>
+    <main style={{ font: '16px/1.5 system-ui, sans-serif', maxWidth: 760, margin: '0 auto', padding: 24 }}>
       <h1>pointto playground</h1>
-      <p>Phase 1 harness. No voice, no manifest — just the spotlight.</p>
+      <p>Checkpoint 2. The buttons below ask for an element by manifest id, not by reference.</p>
 
       <div style={bar}>
-        <button onClick={() => spotlight(inviteRef.current)}>Spotlight “Invite member”</button>
-        <button onClick={() => spotlight(billingRef.current)}>Spotlight “Billing”</button>
+        <button onClick={() => spotlightId('team.invite-member')}>Ask for “invite member”</button>
+        <button onClick={() => spotlightId('billing.manage')}>Ask for “billing”</button>
         <button onClick={clear}>Clear</button>
       </div>
+
+      <div style={bar}>
+        <strong style={{ font: '13px system-ui' }}>Break the manifest:</strong>
+        <label>
+          <input type="checkbox" checked={testIdBroken} onChange={(e) => setTestIdBroken(e.target.checked)} />{' '}
+          remove its test id
+        </label>
+        <label>
+          <input type="checkbox" checked={renamed} onChange={(e) => setRenamed(e.target.checked)} /> rename the
+          button
+        </label>
+        <label>
+          <input type="checkbox" checked={removed} onChange={(e) => setRemoved(e.target.checked)} /> delete it
+          entirely
+        </label>
+      </div>
+
+      <pre style={readout} data-testid="outcome-readout">
+        {lastOutcome === null
+          ? 'No request yet. Click one of the “Ask for” buttons.'
+          : lastOutcome.status === 'resolved'
+            ? `resolved   anchor: ${lastOutcome.anchorKind}  (position ${lastOutcome.anchorIndex} in the cascade)${
+                lastOutcome.ambiguous ? '  AMBIGUOUS: more than one match' : ''
+              }`
+            : `not found  tried: ${lastOutcome.tried.join(' -> ') || '(id is not in the manifest)'}\nNothing is lit, which is correct: we never guess.`}
+      </pre>
 
       <section style={panel}>
         <h2>Proof the host UI stays clickable</h2>
@@ -48,20 +90,20 @@ export function App() {
 
       <div style={{ height: '70vh' }} aria-hidden />
 
-      <section style={panel}>
+      <section style={panel} id="team-panel">
         <h2>Team settings</h2>
-        <button ref={inviteRef} data-testid="invite-member-btn">
-          Invite member
-        </button>
+        {removed ? (
+          <p style={{ color: '#71717a' }}>The button has been deleted from the page.</p>
+        ) : (
+          <button {...inviteProps}>{renamed ? 'Add a teammate' : 'Invite member'}</button>
+        )}
       </section>
 
       <div style={{ height: '70vh' }} aria-hidden />
 
-      <section style={panel}>
+      <section style={panel} id="billing-panel">
         <h2>Billing</h2>
-        <button ref={billingRef} data-testid="billing-btn">
-          Manage billing
-        </button>
+        <button data-testid="billing-btn">Manage billing</button>
       </section>
 
       <div style={{ height: '40vh' }} aria-hidden />

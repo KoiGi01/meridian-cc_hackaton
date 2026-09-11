@@ -1,0 +1,32 @@
+- main [ref=f18e3]:
+  - heading "pointto playground" [level=1] [ref=f18e4]
+  - paragraph [ref=f18e5]: Checkpoint 2. The buttons below ask for an element by manifest id, not by reference.
+  - generic [ref=f18e6]:
+    - button "Ask for “invite member”" [ref=f18e7]
+    - button "Ask for “billing”" [ref=f18e8]
+    - button "Clear" [ref=f18e9]
+  - generic [ref=f18e10]:
+    - strong [ref=f18e11]: "Break the manifest:"
+    - generic [ref=f18e12]:
+      - checkbox "remove its test id" [checked] [ref=f18e13]
+      - text: remove its test id
+    - generic [ref=f18e14]:
+      - checkbox "rename the button" [checked] [ref=f18e15]
+      - text: rename the button
+    - generic [ref=f18e16]:
+      - checkbox "delete it entirely" [checked] [active] [ref=f18e17]
+      - text: delete it entirely
+  - generic [ref=f18e18]: "resolved anchor: css (position 3 in the cascade)"
+  - generic [ref=f18e19]:
+    - heading "Proof the host UI stays clickable" [level=2] [ref=f18e20]
+    - paragraph [ref=f18e21]:
+      - text: This counter must still increment while the screen is dimmed. Clicked
+      - strong [ref=f18e22]: "0"
+      - text: times.
+    - button "Click me while dimmed" [ref=f18e23]
+  - generic [ref=f18e25]:
+    - heading "Team settings" [level=2] [ref=f18e26]
+    - paragraph [ref=f18e34]: The button has been deleted from the page.
+  - generic [ref=f18e29]:
+    - heading "Billing" [level=2] [ref=f18e30]
+    - button "Manage billing" [ref=f18e31]
