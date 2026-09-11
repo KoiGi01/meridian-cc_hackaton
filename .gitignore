@@ -6,3 +6,4 @@ dist/
 .DS_Store
 storage-state.json
 .playwright-mcp/
+server/events.log
