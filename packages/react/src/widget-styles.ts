@@ -57,6 +57,24 @@ export const WIDGET_CSS = `
   border-bottom: 1px solid #27272a;
 }
 .pt-head strong { font-weight: 600; color: #fafafa; }
+.pt-status { flex: 1; text-align: right; margin-right: 10px; color: #a1a1aa; font-size: 12px; }
+.pt-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #71717a; vertical-align: middle; }
+.pt-dot-live { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.25); }
+.pt-system { align-self: center; background: transparent; color: #a1a1aa; font-size: 12px; text-align: center; }
+.pt-partial { opacity: .55; font-style: italic; }
+.pt-mic {
+  width: 40px;
+  border: 1px solid #3f3f46;
+  border-radius: 10px;
+  background: #27272a;
+  color: #fafafa;
+  cursor: pointer;
+  font-size: 16px;
+}
+.pt-mic:hover { background: #3f3f46; }
+.pt-mic:disabled { opacity: .5; cursor: default; }
+.pt-mic-live { background: #dc2626; border-color: #dc2626; }
+.pt-mic-live:hover { background: #b91c1c; }
 .pt-exit {
   background: transparent;
   border: 1px solid #3f3f46;

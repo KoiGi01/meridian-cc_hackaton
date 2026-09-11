@@ -1,0 +1,12 @@
+{
+  "name": "pointto-server",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Mints short-lived AssemblyAI voice-agent tokens and collects runtime events. The API key lives here and nowhere else.",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --experimental-strip-types src/index.ts",
+    "start": "node --experimental-strip-types src/index.ts"
+  },
+  "engines": { "node": ">=22.6" }
+}

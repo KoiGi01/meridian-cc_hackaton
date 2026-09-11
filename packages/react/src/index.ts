@@ -20,3 +20,7 @@ export type {
   IntentMatch,
   IntentResolver,
 } from 'pointto-core';
+export { VoiceSession } from './voice/VoiceSession';
+export type { VoiceSessionOptions, VoiceState, AgentEvent } from './voice/VoiceSession';
+export { buildSessionUpdate } from 'pointto-core';
+export type { SessionUpdate, SessionOptions } from 'pointto-core';

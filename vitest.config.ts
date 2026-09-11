@@ -13,6 +13,6 @@ export default defineConfig({
   test: {
     environment: 'node',
     environmentMatchGlobs: [['packages/react/**', 'jsdom']],
-    include: ['packages/**/*.test.{ts,tsx}'],
+    include: ['packages/**/*.test.{ts,tsx}', 'server/**/*.test.ts'],
   },
 });

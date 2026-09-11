@@ -21,7 +21,7 @@ npm install -g pnpm     # only if `pnpm -v` fails
 pnpm install            # takes about 30 seconds
 ```
 
-Verified on a clean clone: `pnpm install` then `pnpm test` gives 99 passing tests.
+Verified on a clean clone: `pnpm install` then `pnpm test` gives 139 passing tests.
 
 To start the test page:
 
@@ -37,7 +37,7 @@ To run the automated tests:
 pnpm test
 ```
 
-Everything should say passed. As of Checkpoint 3 there are 99 automated tests.
+Everything should say passed. As of Checkpoint 4 there are 139 automated tests.
 
 To start the **real third-party demo app** (added in Checkpoint 2):
 
@@ -213,3 +213,56 @@ The "Ask for" buttons from Checkpoint 2 are gone; use the widget. The break-the-
 ### Found during this checkpoint
 
 **A stale light.** After a successful question, asking something unrelated made the widget say "I couldn't find anything" — while the *previous* button stayed lit. The words and the light disagreed, which is the one thing this product must never do. Caught in the browser, fixed, and check 3.4 guards it. This is the third time a real bug passed the unit tests and only appeared in a real browser, which is why every checkpoint gets driven by hand before it is called done.
+
+---
+
+## Checkpoint 4 — Voice
+
+**Finished:** 2026-09-11
+
+**What was built.** The microphone. There is now a **🎤** button next to the text box. Press it, say *"how do I add a store?"*, and the app changes page, lights the button, and a voice tells you what it is. Typing while voice is on goes through the same brain, so it understands how you phrase things rather than just matching words.
+
+**What you are really testing.** Voice is the part nobody on the team could fully verify with automation — a headless browser has no microphone. The plumbing (token, connection, tool calls, playback) was proven end to end by typing to the live agent. **Actually talking to it is on you.** That makes this the most valuable QA pass so far.
+
+Also: **the microphone must only ever open when you press 🎤.** Never on page load, never on opening the widget. There is an automated test for it, but check the browser's mic indicator with your own eyes.
+
+### Setup for this checkpoint
+
+You need one extra terminal running the token server. It needs the `.env` file with the AssemblyAI key — ask the project owner for it; it is never in the repo.
+
+```bash
+pnpm dev:server          # http://localhost:8787 — leave it running
+```
+
+Then start the demo app as before. Use **Chrome or Edge** for this checkpoint; Firefox and Safari should also work but are less tested.
+
+| # | What to do | What should happen | Pass / Fail |
+|---|---|---|---|
+| 4.1 | Open the demo app. **Before touching anything**, look at the browser tab for a microphone indicator | There is none. The mic is off. | |
+| 4.2 | Open the widget with **?**. Look again | Still no mic indicator. There is a 🎤 button next to the text box. | |
+| 4.3 | Press 🎤 | The browser asks for microphone permission. Allow it. The status in the panel header goes Connecting → Ready → Listening, and a voice says hello. The mic indicator appears now, and only now. | |
+| 4.4 | Say, out loud: **"How do I add a product?"** | You see your words appear in the transcript as you speak. The page goes to Products if it was not there, "Add new product" lights up, and the voice tells you what that button does — in one short sentence. | |
+| 4.5 | Say: **"Where can I see the orders?"** | The Orders sidebar link lights, and it tells you. | |
+| 4.6 | Say something it cannot map: **"What is the weather today?"** | It says it cannot help with that, or asks what you are looking for. **Nothing lights up.** | |
+| 4.7 | While the voice is talking, start talking over it | It stops mid-sentence and listens to you. (This is barge-in.) | |
+| 4.8 | With voice on, **type** "how do I add a store" instead of speaking | Same result as speaking it: page changes, button lights, voice replies. | |
+| 4.9 | Press **■** (the mic button while live) | Voice stops, mic indicator disappears, the transcript stays. | |
+| 4.10 | Press 🎤 again, then press **Escape** | Panel closes, voice stops, mic indicator disappears. | |
+| 4.11 | Reload. Open the widget, press 🎤, and **deny** microphone permission | A line appears saying it cannot use your mic but you can keep typing. Type "how do I add a store" — it still works, with a spoken reply. | |
+| 4.12 | Stop the token server (Ctrl+C in that terminal), reload, press 🎤 | A clear message that voice could not start. Text still works via the offline matcher. | |
+| 4.13 | Use it for a few minutes normally | No stuck states. Replies come within a couple of seconds. No pops or gaps in the voice. | |
+
+### Known and expected at this checkpoint
+
+- **Verified by a person: none of the above yet.** Everything through 4.8 was proven by *typing* to the live agent; speaking into a real microphone has not been tested by anyone on the team. Report everything.
+- **Answers are in English.** The agent is set up to answer in the language you speak, but that path is not tested. Please test in English only for now.
+- **The status can stick on "Speaking"** if the browser never answers the mic permission prompt. Cosmetic.
+- **It only knows what is in the manifest** — six elements on three screens. Asking about couriers or categories will get an honest "I can't find that."
+- **Voice costs money.** Every session uses AssemblyAI credits. Don't leave it open for fun.
+- **The token server only accepts requests from localhost:5173 and :5190.** If you run the app on a different port, voice will fail with a 403. That is intended.
+
+### Found during this checkpoint
+
+**The agent was answering the wrong question.** Sending typed text as a bare conversation message, the documented way, made the agent reply as if nothing had been asked — once it literally replied with a *sample* user question from its own catalog. Carrying the text inside the reply request fixed it every time. Documented in the code so nobody "simplifies" it back.
+
+**The agent hedged instead of pointing.** First prompt made it call a "where am I?" tool before highlighting, then lose the thread. Reworded so highlighting is its unambiguous first move. Now: question in → one tool call → light → one sentence.

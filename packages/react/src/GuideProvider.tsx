@@ -1,4 +1,5 @@
 import {
+  buildSessionUpdate,
   findElementById,
   LexicalIntentResolver,
   resolveElement,
@@ -23,6 +24,7 @@ import { GuideWidget, type GuideWidgetProps } from './GuideWidget';
 import { createHistoryRouter, type RouterAdapter } from './router';
 import { createShadowHost } from './shadow-root';
 import { SpotlightOverlay } from './SpotlightOverlay';
+import { VoiceSession, type AgentEvent, type VoiceState } from './voice/VoiceSession';
 
 export interface GuideOptions {
   zIndex?: number;
@@ -35,6 +37,17 @@ export type GuideResult =
   | { status: 'resolved'; elementId: string; navigated: boolean }
   | { status: 'not-found'; elementId: string; navigated: boolean }
   | { status: 'unknown-id'; elementId: string };
+
+export interface VoiceOptions {
+  /** Our token server, e.g. http://localhost:8787/api/voice/token */
+  tokenEndpoint: string;
+  /** Exact AssemblyAI voice id. Default `lola` (Spanish + English). */
+  voice?: string;
+  greeting?: string;
+  /** Omit for automatic language detection. */
+  languageCodes?: string[];
+  appName?: string;
+}
 
 export type AskResult =
   | { status: 'guided'; match: IntentMatch; result: GuideResult }
@@ -63,6 +76,16 @@ export interface GuideContextValue {
   /** Outcome of the most recent spotlightId / guide call. */
   lastOutcome: ResolveOutcome | null;
   clear: () => void;
+  /** Voice is available only when the provider was given `voice` config. */
+  voiceEnabled: boolean;
+  voiceState: VoiceState;
+  /** Opens the microphone. This is the ONLY path that does. */
+  startVoice: () => Promise<void>;
+  stopVoice: () => void;
+  /** Route typed text through the live agent. Returns false if no session is open. */
+  sendText: (text: string) => boolean;
+  /** Subscribe to agent events (transcripts, state). Returns unsubscribe. */
+  onAgentEvent: (fn: (e: AgentEvent) => void) => () => void;
 }
 
 const GuideContext = createContext<GuideContextValue | null>(null);
@@ -83,6 +106,7 @@ export function GuideProvider({
   router,
   intent,
   widget,
+  voice,
 }: {
   children: ReactNode;
   options?: GuideOptions;
@@ -91,6 +115,8 @@ export function GuideProvider({
   intent?: IntentResolver;
   /** `false` hides the built-in widget; an object configures it. */
   widget?: boolean | GuideWidgetProps;
+  /** Enables the mic button. Without it the widget is text-only. */
+  voice?: VoiceOptions;
 }) {
   const { zIndex = 2147483000, padding = 6, radius = 8, dimOpacity = 0.6 } = options ?? {};
   const [target, setTarget] = useState<HTMLElement | null>(null);
@@ -182,9 +208,121 @@ export function GuideProvider({
     [manifest, guide],
   );
 
+  // ---- voice ---------------------------------------------------------------
+  const [voiceState, setVoiceState] = useState<VoiceState>('idle');
+  const sessionRef = useRef<VoiceSession | null>(null);
+  const listenersRef = useRef(new Set<(e: AgentEvent) => void>());
+  const guideRef = useRef(guide);
+  guideRef.current = guide;
+
+  const onAgentEvent = useCallback((fn: (e: AgentEvent) => void) => {
+    listenersRef.current.add(fn);
+    return () => {
+      listenersRef.current.delete(fn);
+    };
+  }, []);
+
+  /**
+   * The agent's tools. Every result is a plain value; errors are thrown with a
+   * message specific enough for the model to recover (name what failed and
+   * what to ask for next).
+   */
+  const runTool = useCallback(
+    async (name: string, args: Record<string, unknown>): Promise<unknown> => {
+      if (!manifest) throw new Error('No manifest is loaded, so nothing can be highlighted.');
+
+      if (name === 'highlight') {
+        const id = String(args.element_id ?? '');
+        const entry = findElementById(manifest, id);
+        if (!entry) {
+          throw new Error(`No element with id "${id}". Pick an id from the catalog, or ask the user to describe it differently.`);
+        }
+        const r = await guideRef.current(id);
+        if (r.status === 'resolved') {
+          return { status: 'highlighted', element_id: id, navigated: r.navigated, purpose: entry.purpose };
+        }
+        throw new Error(
+          `Element "${id}" exists but is not visible on the current screen${
+            r.status === 'not-found' && r.navigated ? ' even after navigating' : ''
+          }. Tell the user you could not find it right now.`,
+        );
+      }
+
+      if (name === 'navigate') {
+        const path = String(args.path ?? '');
+        if (!manifest.routes.some((r) => r.path === path)) {
+          throw new Error(`Unknown path "${path}". Use a path from the catalog.`);
+        }
+        routerRef.current.navigate(path);
+        return { ok: true, path };
+      }
+
+      if (name === 'get_current_context') {
+        const path = routerRef.current.currentPath();
+        const route = manifest.routes.find((r) => r.path === path);
+        const visible = (route?.elements ?? []).filter((e) => resolveElement(e).status === 'resolved').map((e) => e.id);
+        return { path, screen: route?.label ?? null, visible_element_ids: visible };
+      }
+
+      throw new Error(`Unknown tool "${name}".`);
+    },
+    [manifest],
+  );
+
+  const stopVoice = useCallback(() => {
+    sessionRef.current?.stop();
+    sessionRef.current = null;
+  }, []);
+
+  const startVoice = useCallback(async () => {
+    if (!voice || !manifest || sessionRef.current) return;
+    const session = new VoiceSession({
+      tokenEndpoint: voice.tokenEndpoint,
+      sessionUpdate: buildSessionUpdate(manifest, {
+        ...(voice.voice ? { voice: voice.voice } : {}),
+        ...(voice.greeting ? { greeting: voice.greeting } : {}),
+        ...(voice.languageCodes ? { languageCodes: voice.languageCodes } : {}),
+        ...(voice.appName ? { appName: voice.appName } : {}),
+      }),
+      onToolCall: runTool,
+      onEvent: (e) => {
+        if (e.type === 'state') setVoiceState(e.state as VoiceState);
+        for (const fn of listenersRef.current) fn(e);
+        if (e.type === 'state' && (e.state === 'ended' || e.state === 'error')) sessionRef.current = null;
+      },
+    });
+    sessionRef.current = session;
+    await session.start();
+  }, [voice, manifest, runTool]);
+
+  const sendText = useCallback((text: string): boolean => {
+    const s = sessionRef.current;
+    if (!s || (s.state !== 'listening' && s.state !== 'ready' && s.state !== 'speaking')) return false;
+    s.sendText(text);
+    return true;
+  }, []);
+
+  // End any live session if the provider unmounts.
+  useEffect(() => () => sessionRef.current?.stop(), []);
+
   const value = useMemo<GuideContextValue>(
-    () => ({ manifest, target, spotlight, spotlightId, guide, ask, lastOutcome, clear }),
-    [manifest, target, spotlight, spotlightId, guide, ask, lastOutcome, clear],
+    () => ({
+      manifest,
+      target,
+      spotlight,
+      spotlightId,
+      guide,
+      ask,
+      lastOutcome,
+      clear,
+      voiceEnabled: !!voice && !!manifest,
+      voiceState,
+      startVoice,
+      stopVoice,
+      sendText,
+      onAgentEvent,
+    }),
+    [manifest, target, spotlight, spotlightId, guide, ask, lastOutcome, clear, voice, voiceState, startVoice, stopVoice, sendText, onAgentEvent],
   );
 
   return (

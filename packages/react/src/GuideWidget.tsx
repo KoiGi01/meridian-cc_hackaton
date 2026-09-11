@@ -13,19 +13,20 @@ export interface GuideWidgetProps {
 }
 
 interface Turn {
-  role: 'user' | 'agent';
+  role: 'user' | 'agent' | 'system';
   text: string;
   /** Present on an ambiguous reply: the choices offered. */
   choices?: IntentMatch[];
 }
 
 /**
- * The text-mode widget. Voice arrives later as a mic button next to the input,
- * driving exactly the same `ask` — this is the fallback that has to work when
- * the microphone is denied or the office is loud (BUILD-SPEC 5.5).
+ * The widget. Text always works. Voice is a mic button that appears only when
+ * the provider has voice config, and the microphone opens only when it is
+ * pressed — never on open, never in the background (BUILD-SPEC 5.5).
  *
- * The microphone is never opened here. Nothing in this component touches
- * navigator.mediaDevices.
+ * With a voice session open, typed text goes through the same agent, so text
+ * and voice share one brain. With no session, the local lexical resolver is
+ * the floor that always works.
  */
 export function GuideWidget({
   position = 'bottom-right',
@@ -33,20 +34,25 @@ export function GuideWidget({
   placeholder = 'How do I…',
   zIndex = 2147483001,
 }: GuideWidgetProps) {
-  const { ask, guide, manifest, clear } = useGuide();
+  const { ask, guide, manifest, clear, voiceEnabled, voiceState, startVoice, stopVoice, sendText, onAgentEvent } =
+    useGuide();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState('');
   const [turns, setTurns] = useState<Turn[]>([]);
+  const [partial, setPartial] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
 
   const side = position === 'bottom-left' ? 'pt-left' : 'pt-right';
+  const live = voiceState === 'listening' || voiceState === 'speaking' || voiceState === 'ready';
+  const connecting = voiceState === 'connecting';
 
   const close = useCallback(() => {
     setOpen(false);
+    stopVoice();
     clear();
-  }, [clear]);
+  }, [clear, stopVoice]);
 
   // Escape always closes. Registered only while open, on window, capture
   // phase, so it works no matter what in the host has focus.
@@ -66,19 +72,59 @@ export function GuideWidget({
   useEffect(() => {
     const el = transcriptRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [turns]);
+  }, [turns, partial]);
+
+  const say = useCallback(
+    (text: string, choices?: IntentMatch[]) =>
+      setTurns((t) => [...t, { role: 'agent', text, ...(choices ? { choices } : {}) }]),
+    [],
+  );
+
+  // Live transcript from the agent. Final transcripts become turns; partial
+  // user speech shows as a faint in-progress line.
+  useEffect(
+    () =>
+      onAgentEvent((e) => {
+        switch (e.type) {
+          case 'transcript.user.delta':
+            setPartial(String(e.text ?? e.delta ?? ''));
+            break;
+          case 'transcript.user':
+            setPartial('');
+            setTurns((t) => [...t, { role: 'user', text: String(e.text ?? '') }]);
+            break;
+          case 'transcript.agent':
+            say(String(e.text ?? ''));
+            break;
+          case 'mic.unavailable':
+            setTurns((t) => [
+              ...t,
+              { role: 'system', text: "I can't use your microphone, but you can keep typing — I'm still listening here." },
+            ]);
+            break;
+          case 'error':
+            setTurns((t) => [...t, { role: 'system', text: `Voice stopped: ${String(e.message ?? 'unknown error')}` }]);
+            break;
+        }
+      }),
+    [onAgentEvent, say],
+  );
 
   const purposeOf = (id: string) =>
     (manifest && findElementById(manifest, id)?.purpose) || 'Here it is.';
-
-  const say = (text: string, choices?: IntentMatch[]) =>
-    setTurns((t) => [...t, { role: 'agent', text, ...(choices ? { choices } : {}) }]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     const q = query.trim();
     if (!q || busy) return;
     setQuery('');
+
+    // A live agent understands intent and any language; it also speaks. Prefer it.
+    if (live && sendText(q)) {
+      setTurns((t) => [...t, { role: 'user', text: q }]);
+      return;
+    }
+
     setTurns((t) => [...t, { role: 'user', text: q }]);
     setBusy(true);
     try {
@@ -113,6 +159,28 @@ export function GuideWidget({
     }
   };
 
+  const toggleMic = async () => {
+    if (live || connecting) {
+      stopVoice();
+      return;
+    }
+    try {
+      await startVoice();
+    } catch (err) {
+      setTurns((t) => [...t, { role: 'system', text: `Couldn't start voice: ${(err as Error).message}` }]);
+    }
+  };
+
+  const statusText = connecting
+    ? 'Connecting…'
+    : voiceState === 'listening'
+      ? 'Listening'
+      : voiceState === 'speaking'
+        ? 'Speaking'
+        : voiceState === 'ready'
+          ? 'Ready'
+          : null;
+
   return (
     <>
       <style>{WIDGET_CSS}</style>
@@ -127,17 +195,30 @@ export function GuideWidget({
         >
           <div className="pt-head">
             <strong>{title}</strong>
+            <span className="pt-status" data-pointto-status="">
+              {statusText && (
+                <>
+                  <span className={`pt-dot ${voiceState === 'listening' ? 'pt-dot-live' : ''}`} /> {statusText}
+                </>
+              )}
+            </span>
             <button type="button" className="pt-exit" data-pointto-exit="" onClick={close}>
               Exit
             </button>
           </div>
 
           <div className="pt-transcript" data-pointto-transcript="" ref={transcriptRef} aria-live="polite">
-            {turns.length === 0 && (
-              <div className="pt-empty">Ask me where something is, and I&apos;ll point at it.</div>
+            {turns.length === 0 && !partial && (
+              <div className="pt-empty">
+                Ask me where something is, and I&apos;ll point at it.
+                {voiceEnabled && ' Press the mic to talk.'}
+              </div>
             )}
             {turns.map((t, i) => (
-              <div key={i} className={`pt-turn ${t.role === 'user' ? 'pt-user' : 'pt-agent'}`}>
+              <div
+                key={i}
+                className={`pt-turn ${t.role === 'user' ? 'pt-user' : t.role === 'system' ? 'pt-system' : 'pt-agent'}`}
+              >
                 {t.text}
                 {t.choices && (
                   <div className="pt-chips">
@@ -157,16 +238,35 @@ export function GuideWidget({
                 )}
               </div>
             ))}
+            {partial && (
+              <div className="pt-turn pt-user pt-partial" data-pointto-partial="">
+                {partial}
+              </div>
+            )}
           </div>
 
           <form className="pt-form" onSubmit={submit}>
+            {voiceEnabled && (
+              <button
+                type="button"
+                className={`pt-mic ${live ? 'pt-mic-live' : ''}`}
+                data-pointto-mic=""
+                aria-label={live ? 'Stop voice' : 'Start voice'}
+                aria-pressed={live}
+                onClick={toggleMic}
+                disabled={connecting}
+                title={live ? 'Stop' : 'Talk'}
+              >
+                {live ? '■' : '🎤'}
+              </button>
+            )}
             <input
               ref={inputRef}
               className="pt-input"
               data-pointto-input=""
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={placeholder}
+              placeholder={live ? 'Or type here…' : placeholder}
               aria-label="Your question"
               disabled={busy}
             />
