@@ -60,6 +60,15 @@ describe('DriftTracker', () => {
     expect(t.quest?.corrections).toBe(1);
   });
 
+  it('lighting the goal after routeChanged claimed it keeps the quest and its count', () => {
+    const t = new DriftTracker();
+    t.lit('products.add', '/products', '/products');
+    t.left();
+    expect(t.routeChanged('/products')).toBe(true);
+    expect(t.lit('products.add', '/products', '/products')).toBe('goal');
+    expect(t.quest?.corrections).toBe(1);
+  });
+
   it('relights when the route returns to the goal while pending, once', () => {
     const t = new DriftTracker();
     t.lit('products.add', '/products', '/products');

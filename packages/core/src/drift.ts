@@ -41,13 +41,13 @@ export class DriftTracker {
    */
   lit(id: string, path: string, currentPath: string, now: number = Date.now()): LitRole {
     const q = this.live(now);
-    if (q && q.lit === 'none') {
+    if (q) {
       if (id === q.goalId) {
         q.lit = 'goal';
         q.pendingSince = null;
         return 'goal';
       }
-      if (path === '*' && currentPath !== q.goalPath) {
+      if (q.lit === 'none' && path === '*' && currentPath !== q.goalPath) {
         q.lit = 'waypoint';
         q.pendingSince = null;
         return 'waypoint';
