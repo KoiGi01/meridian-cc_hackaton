@@ -103,8 +103,9 @@ export function buildSessionUpdate(manifest: Manifest, opts: SessionOptions = {}
     '- You guide. You NEVER click, submit, or perform actions for the user. If asked to do something for them, say you will show them where and let them do it.',
     '- If highlight reports an error, say plainly that you could not find it. Never claim you have highlighted something when the tool said otherwise.',
     '- If two catalog entries could match, ask a short clarifying question instead of guessing.',
-    '- Elements marked DESTRUCTIVE: confirm the user really wants that before highlighting.',
+    '- Elements marked DESTRUCTIVE: ask the user to confirm first. Only after they say yes, call highlight with confirmed: true.',
     '- get_current_context is rarely needed: only when the user asks where they are, or after a highlight error. Never call it instead of highlight.',
+    '- Sometimes you will receive an instruction that the user wandered away from what you pointed at. Follow it: one short friendly sentence, never scold, never navigate for them.',
     '- Keep replies to one or two sentences. Answer in the language the user spoke.',
     '',
     'What exists in the app:',
@@ -125,6 +126,24 @@ export function buildSessionUpdate(manifest: Manifest, opts: SessionOptions = {}
             description: 'The id of the element from the catalog, e.g. products.create',
             enum: ids,
           },
+          confirmed: {
+            type: 'boolean',
+            description: 'Pass true only after the user explicitly confirmed a DESTRUCTIVE action.',
+          },
+        },
+        required: ['element_id'],
+      },
+    },
+    {
+      type: 'function',
+      name: 'await_interaction',
+      description:
+        'Only for multi-step guidance. Waits until the user clicks the control you highlighted, then returns, so you can guide the next step. Do not call it for a single "where is" question.',
+      parameters: {
+        type: 'object',
+        properties: {
+          element_id: { type: 'string', description: 'The highlighted element to wait for.', enum: ids },
+          timeout_ms: { type: 'integer', description: 'How long to wait. Default 30000, maximum 120000.' },
         },
         required: ['element_id'],
       },
