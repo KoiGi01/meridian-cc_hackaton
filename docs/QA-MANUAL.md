@@ -37,7 +37,7 @@ To run the automated tests:
 pnpm test
 ```
 
-Everything should say passed. As of Checkpoint 5 there are 174 automated tests.
+Everything should say passed. As of Checkpoint 6 there are 254 automated tests.
 
 To start the **real third-party demo app** (added in Checkpoint 2):
 
@@ -334,3 +334,64 @@ Expect it to take **several minutes** — Gemini's free tier is slow and sometim
 **The search box was invisible to both scanner and runtime.** It has no label; browsers derive its name from the `placeholder`. Both sides now do the same.
 
 **Free-tier 503s killed the whole scan.** Now retried with backoff, and a route that still fails degrades to skeleton labels instead of losing everything.
+
+---
+
+## Checkpoint 6 — It notices when you wander
+
+**Finished:** 2026-09-14
+
+**What was built.** Until now, once something was lit, pointto just waited. Now it watches what you do with the light. Click the lit control and the light goes out. Leave the screen it is on and the light goes out *immediately* and the guide says one short sentence about where you are and where the thing you asked for lives — out loud if voice is on, in the panel if not. Come back to that screen on your own and the light is waiting for you again, with nothing said. Ignore the correction twice and it stops correcting and offers to start over. Ask for something destructive (logging out) and it asks you first.
+
+**What you are really testing.** The product's claim over tour libraries: a tour breaks the moment you go off script; this corrects you or adapts. Also the tone. It should feel like a colleague glancing over, not a form validator. Any correction that reads as scolding, or a light that comes on when you did not ask, is a bug.
+
+### Setup
+
+Same as Checkpoint 4: `pnpm dev:server` in one terminal, `pnpm --filter finefoods-antd dev:pointto` in another, http://localhost:5190 in Chrome or Edge.
+
+### Text mode (mic off) — everything here works offline, no API key
+
+| # | What to do | What should happen | Pass / Fail |
+|---|---|---|---|
+| 6.1 | Open the widget, type **where do I add a product** | Page goes to Products, **Add new product** lights. | |
+| 6.2 | Click **Orders** in the sidebar | The light is off *before* the Orders page has even finished loading. A new line appears in the panel: *"You're on Orders now. "add new product" is on the Products screen."* One sentence. No "oops", no "wrong". | |
+| 6.3 | Click **Products** in the sidebar | **Add new product** is lit again. Nothing new is said. | |
+| 6.4 | Click the lit **Add new product** button | The light goes out. Nothing is said. The create form opens as normal — pointto never got in the way of the click. | |
+| 6.5 | Ask again, then wander three times: Orders → Products → Customers → Products → Couriers | Correction after Orders, silent relight after Products, correction after Customers, silent relight, and after Couriers a *different* line ending in *"Want me to start over, or should I stop pointing?"* | |
+| 6.6 | After 6.5, click Products once more, then Orders | Nothing lights up, nothing is said. It gave up, as promised. | |
+| 6.7 | Type **log me out** | Nothing lights. The panel says it is marked as destructive and asks whether to show it anyway, with **Yes, show me** and **No** buttons. | |
+| 6.8 | Press **No** | *"Okay, I'll leave it."* Still nothing lit. | |
+| 6.9 | Type **log me out** again, press **Yes, show me** | **Logout** in the sidebar lights. It is only lit — nobody logged you out. | |
+| 6.10 | Ask for **add a product**, then click the search box at the top, then a column header to sort the table | The light stays on through both — even though sorting re-renders the whole table underneath it. Using the app on the same screen is not wandering. | |
+| 6.11 | Ask for **add a product**, then press the browser **Back** button | Treated like 6.2: light off, correction shown. | |
+
+### Voice (mic on)
+
+| # | What to do | What should happen | Pass / Fail |
+|---|---|---|---|
+| 6.12 | Press 🎤, say **"where do I add a product?"**, then click **Orders** | Light off at once. Within a couple of seconds the voice says one friendly sentence, something like *"You're on the orders page now — products is where you add one."* Most of the time it also lights the **Products** link in the sidebar to show you the way back. | |
+| 6.13 | Click the lit **Products** link | You land on Products and **Add new product** is lit again — with nothing said. This is the moment the whole feature exists for. | |
+| 6.14 | Click **Add new product** | Light off, silence. | |
+| 6.15 | Repeat 6.5 by voice | Two spoken corrections, then an offer to start over or stop. Then silence. | |
+| 6.16 | Say **"log me out"** | It asks whether you are sure. **Nothing lights.** | |
+| 6.17 | Say **"yes"** | **Logout** lights, and it tells you what the button does. It must **not** say it has logged you out. | |
+| 6.18 | While it is speaking a correction, talk over it | It stops. No correction is replayed later — you were talking, not wandering. | |
+| 6.19 | Wander, then say something unrelated before the correction plays | Whatever it says, it should never say the correction *and* answer you at once. Corrections wait for the agent to be idle. | |
+
+![Text mode: the user left for Orders and the panel says where the goal lives](img/phase6-drift.png)
+
+### Known and expected
+
+- **The way back is the model's choice.** After a correction the agent *may* light the sidebar link to the goal's screen. It usually does; it is allowed not to. It must never navigate you back itself.
+- **A pending goal expires after two minutes.** Wander, get corrected, go do something else for five minutes, then visit Products — nothing lights. That is on purpose: an old goal must not come back as a surprise.
+- **"Lost" is real but rare in this app.** If the lit control disappears from the screen without a route change (a closed drawer, a collapsed menu), the light goes out and a correction says it can no longer see it. The demo app has no easy way to trigger this; it is covered by automated tests.
+- **The demo's Logout is flagged destructive by hand** in the generated manifest. The scanner now flags logout/sign-out on its own; rescanning would take ten minutes to produce the same file.
+- **Test in English only.**
+
+### Found during this checkpoint
+
+**Voice sessions ended on their own twice, mid-correction, in the automated browser** — which has no real microphone. Once the panel also collapsed a few seconds later. Both were caught by instrumentation, neither reproduced in the instrumented run, and a later session ran four corrections cleanly. The fake microphone in that browser also produced phantom Spanish transcripts. If the session dies on you with a **real** mic, that is the bug to report: note whether the panel collapsed and whether a correction was in flight.
+
+**The agent claimed to have logged the user out.** After lighting Logout on request it said "You have been logged out." The prompt now says highlight only lights the control and the user still has to click it.
+
+**Two test-only traps in the DOM watcher.** The click listener runs in the capture phase, before the app's router changes the URL, so the outcome is read on the next animation frame. Tests that stub `requestAnimationFrame` synchronously saw the wrong answer, and a scheduling flag stored in the frame handle broke under the same stub. Both fixed in the watcher, not the tests.

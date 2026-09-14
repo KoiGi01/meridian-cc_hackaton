@@ -1,13 +1,12 @@
 # Handoff — continue from here
 
-Written 2026-09-13 at the end of a long session. Read `CLAUDE.md` first (it is the durable reference); this file is only what CLAUDE.md does not say: where things stand right now, what was decided in conversation, and what to do next.
+Written 2026-09-13; updated 2026-09-14 after Phase 6 landed. Read `CLAUDE.md` first (it is the durable reference); this file is only what CLAUDE.md does not say: where things stand right now, what was decided in conversation, and what to do next.
 
 ## State
 
-- **Checkpoints 1–5 of 9 are done and merged to `main`**, pushed to https://github.com/KoiGi01/meridian-cc_hackaton. 175 tests, `pnpm build` clean (8 targets).
-- Working tree clean on `main` as of commit `cbd8e5b` ("Merge phase 5: scanner CLI").
-- What exists and works end to end, verified in a real browser against the vendored Refine admin: spotlight → manifest + anchor cascade → typed questions (lexical, offline) → **voice** via AssemblyAI Voice Agent API (mic, tool calls, spoken replies, audio-reactive orb, collapsible chat, captions) → **scanner CLI** that generated the manifest the demo now runs on (51 elements, Gemini-labeled).
-- Human-verified by the user: the voice sounds good with `anna`; the orb/collapse/captions UI was approved ("Ok it works").
+- **Checkpoints 1–6 of 9 are done and merged to `main`**, pushed to https://github.com/KoiGi01/meridian-cc_hackaton. 254 tests, `pnpm build` clean.
+- What exists and works end to end, verified in a real browser against the vendored Refine admin: spotlight → manifest + anchor cascade → typed questions (lexical, offline) → **voice** via AssemblyAI Voice Agent API (mic, tool calls, spoken replies, audio-reactive orb, collapsible chat, captions) → **scanner CLI** that generated the manifest the demo runs on (51 elements, Gemini-labeled) → **drift detection**: light off the instant the user leaves the goal's screen, one spoken/typed correction, silent relight when they come back, give-up after two ignored corrections, `await_interaction` tool, runtime confirmation gate for `destructive` elements.
+- Human-verified by the user: the voice sounds good with `anna`; the orb/collapse/captions UI was approved ("Ok it works"). **Phase 6 has not yet been tried by a human with a real microphone** — the browser pass typed to the live agent. QA-MANUAL Checkpoint 6 is written for that.
 - `.env` (gitignored, never committed) holds `ASSEMBLYAI_API_KEY` and `GEMINI_API_KEY`. **Both passed through chat and must be rotated before submission.**
 
 ## Decisions made in conversation (not derivable from code)
@@ -19,15 +18,21 @@ Written 2026-09-13 at the end of a long session. Read `CLAUDE.md` first (it is t
 - Every checkpoint appends a section to `docs/QA-MANUAL.md` written for a tester who has not read the spec, and the user gets a report of what was built.
 - The user's teammate does QA from `docs/QA-MANUAL.md`; needs `.env` via a secure channel.
 
-## Next: Phase 6 — drift detection (the differentiator)
+## Phase 6 — what was decided and what to watch
 
-BUILD-SPEC §5.7 and §9.6. User said "sigamos" (continue). Nothing designed yet beyond this sketch, which the user has not approved — present it first:
+Design (approved 2026-09-14, plan in `docs/superpowers/plans/2026-09-14-phase6-drift.md`):
+- **Drift is classified by outcome, not by guessing what the clicked element does.** The generated manifest has no link from a sidebar entry to its route, and a wrong correction is worse than none. So: click on the lit target = reached; route changed away from the goal's screen = drift; target gone past a 1.5 s grace = lost; same screen = the user is just using their app. This also catches the back button.
+- **The quest outlives the light** (`DriftTracker` in core). After a correction the goal is pending; a global (`*`) element lit meanwhile is a *waypoint* (the agent lighting the way back) and keeps the correction count. Pending goals expire after 2 min.
+- **Only the sentence goes through the model** (`reply.create { instructions }`, queued until `reply.done` like tool results, dropped on barge-in). Light changes are local. With no session the same correction is a `drift` event the widget renders as text.
+- The model may `highlight` the way back after a correction; it never navigates the user. Runtime gate: `highlight` on a `destructive` element needs `confirmed: true`; text mode returns `needs-confirmation` and the widget asks.
 
-- While a target is lit, listen for clicks on `document` (capture, passive). On a click that is not the target: (1) if the clicked element is in the manifest and advances toward the goal, adapt silently; (2) if it leads away, have the agent say one short correction via `reply.create { instructions }` (already proven to make the agent speak on demand); (3) if unknown, call `get_current_context` and re-orient. Correct once, briefly; after two ignored corrections, offer to start over. Visual feedback local and immediate; only the spoken correction goes through the model (~1 s).
-- `awaitInteraction` tool from §5.6: resolves when the user actually clicks the lit target. Feeds both drift detection and Phase 8 flows.
-- Destructive elements: confirmation gate (§6). The scanner already flags `destructive` by name (delete/remove); the agent prompt already asks to confirm; the runtime gate is not built.
+Open items from the browser pass (not reproduced, not understood):
+- In two of five live sessions in the Playwright MCP browser (fake microphone, no real audio) the server ended the session ~400 ms into a correction; once the panel collapsed ~3 s later with no keypress logged. The instrumented rerun (WS frame log in the QA manual's "Found" section) ran four corrections cleanly. The fake mic also produced phantom Spanish user transcripts. **Try it with a real mic before chasing this.**
+- `lost` (target vanishes on the same screen) is unit-tested only; the demo app has no easy way to trigger it.
 
-After 6: Phase 7 deploy + npm publish (token server exists, undeployed; needs a hosting choice — Vercel/Netlify/Fly — and the user's npm login), Phase 8 flows / linear tour, Phase 9 polish + video + deck. **The pitch video and deck have no owner yet** — worth 25% of the score.
+## Next: Phase 7 — deploy + npm publish
+
+Token server exists (`server/`), undeployed; needs a hosting choice (Vercel/Netlify/Fly) and the user's npm login. Publish `pointto`, `pointto-core`, `pointto-cli` at `0.0.1` early to reserve the names — **user's explicit OK before any publish or deploy.** Mic permission in an iframe needs `allow` attributes (BUILD-SPEC §11). Then Phase 8 flows / linear tour (the `await_interaction` tool and the quest machinery are the building blocks: a flow is a list of goals), Phase 9 polish + video + deck. **The pitch video and deck have no owner yet** — worth 25% of the score.
 
 ## Running things
 

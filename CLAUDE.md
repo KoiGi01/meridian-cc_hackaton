@@ -41,6 +41,8 @@ docs/             QA manual, specs, plans, screenshots.
 
 `GuideProvider` owns one `target: HTMLElement | null`. `spotlightId(id)` looks the id up in the manifest, runs `resolveElement` from core, sets the target, and returns a `ResolveOutcome` — a value, never a throw, because the voice agent will call this as a tool and must be able to say "I can't find that" out loud. `SpotlightOverlay` scrolls the target into view, tracks its rect via `observeRect`, computes a cutout, and renders a single fixed `div` whose 9999px `box-shadow` is the dim. The overlay is `pointer-events: none`; the host UI is never blocked.
 
+**Drift (Phase 6).** `DriftTracker` (core, pure) holds the *quest*: the goal id, its route, how many corrections were spoken, and whether what is lit is the goal, a *waypoint* (a global element lit while the goal is pending — the agent showing the way back) or nothing. `watchGoal` (core, DOM) watches one lit target: capture-phase passive click listener + MutationObserver + route check on the next frame, and reports `reached` / `drift` / `lost` / `replaced` as values; it subsumed the old re-resolve-on-detach effect. The provider glues them: light changes are local and immediate; the correction goes through `VoiceSession.say()` (`reply.create { instructions }`, queued until `reply.done`) when a session is live, or out as a `{ type: 'drift', text, spoken: false }` event the widget renders otherwise. Classification is by **outcome** (route + target), never by guessing what a clicked element does — the manifest has no sidebar-link→route mapping. `guide()` disarms the watcher synchronously before its own navigation. Tool dispatch lives in `tools.ts` (`createToolRunner`), with the runtime `destructive` gate (`confirmed: true`) and `await_interaction`.
+
 `resolveElement` walks an element's anchors most-durable-first (`testid` → `role-name` → `text` → `css`) and takes the first that matches exactly one visible element. Unique-from-weak beats ambiguous-from-strong. No match returns `not-found` — a wrong highlight is worse than an admitted failure. The outcome reports which anchor won; that is the telemetry for manifest brittleness.
 
 ## Voice (AssemblyAI Voice Agent API)
@@ -66,6 +68,10 @@ Two things found the hard way against the live API: (1) typed text must ride in 
 - **Only `App.tsx` may change in `examples/demo-app`.** Mounting the provider is the one permitted edit. Do not reformat, lint-fix, or upgrade it. If the widget needs the host restructured, that is a bug in the widget.
 - **`vitest.config.ts` aliases `pointto-core` to source.** Otherwise a red-green cycle silently runs against the last `pnpm build`.
 - **Hosts replace DOM nodes after you resolve them.** Refine re-renders its table on data load after navigation; the lit node went detached and the light vanished. The provider now watches the DOM with a MutationObserver and re-resolves the same manifest element if the target leaves the document.
+- **Tests that stub `requestAnimationFrame` synchronously lie about event order.** The click listener runs in the capture phase, before the host router changes the URL in a bubbling handler; the outcome must be read on the next frame. A sync rAF stub reads it too early, and a "frame scheduled" flag stored in the rAF handle breaks (the handle is assigned after the callback already cleared it). Stub rAF as `setTimeout(fn, 0)` in new tests; the watcher tolerates both.
+- **RTL's auto-cleanup does not run without vitest globals.** An unmounted-but-alive provider keeps its MutationObservers and answers the next test's clicks. `GuideProvider.drift.test.tsx` calls `cleanup()` explicitly.
+- **Inside one long async `act()` React holds re-renders**, so `guide()`'s poll for the next screen's button never sees it. `settle()` in the drift tests loops short `act()` scopes instead.
+- **The Playwright MCP browser has a fake microphone.** It sends audio; the ASR turns it into phantom user transcripts (Spanish sentences appeared). Typed text through the live agent is still the right way to exercise voice without a human; ignore stray user turns.
 - **Do not bulk-edit TypeScript with python/sed heredocs when the text has backslashes.** `` became a literal backspace byte, `
 ` became a real newline. Use the Edit tool for anything with escapes.
 
@@ -75,4 +81,4 @@ Non-negotiable, from BUILD-SPEC §6: the UI is never locked (only `destructive: 
 
 ## Not built yet
 
-Phases 6–9 of BUILD-SPEC §9: drift detection (`awaitInteraction`, `reply.create` corrections), deploy + npm publish (the token server exists; it is not deployed), flows / linear tour, polish and demo video.
+Phases 7–9 of BUILD-SPEC §9: deploy + npm publish (the token server exists; it is not deployed), flows / linear tour (build on `await_interaction` and the quest — a flow is a list of goals, not a second code path), polish and demo video.
