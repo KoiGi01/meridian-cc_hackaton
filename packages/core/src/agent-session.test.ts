@@ -99,8 +99,36 @@ describe('buildSessionUpdate', () => {
     expect(s.session.system_prompt).toMatch(/never (click|perform)/i);
   });
 
+  it('tells the agent that highlighting is not doing: the user still clicks', () => {
+    // Seen live: after lighting Logout on request, the agent said "You have
+    // been logged out". It had not logged anyone out.
+    expect(s.session.system_prompt).toMatch(/never say the action has been done/i);
+  });
+
   it('flags destructive elements so the agent asks for confirmation', () => {
     expect(s.session.system_prompt).toMatch(/stores\.delete[^\n]*DESTRUCTIVE/);
+  });
+
+  it('exposes await_interaction, constrained to real ids, for multi-step guidance only', () => {
+    const t = s.session.tools.find((t) => t.name === 'await_interaction')!;
+    const props = t.parameters.properties as Record<string, { enum?: string[]; type?: string }>;
+    expect(props.element_id!.enum).toEqual(['products.create', 'stores.create', 'stores.delete']);
+    expect(props.timeout_ms!.type).toBe('integer');
+    expect(t.parameters.required).toEqual(['element_id']);
+    expect(t.description).toMatch(/multi-step/i);
+  });
+
+  it('lets highlight carry an optional confirmed flag for destructive elements', () => {
+    const highlight = s.session.tools.find((t) => t.name === 'highlight')!;
+    const props = highlight.parameters.properties as Record<string, { type?: string }>;
+    expect(props.confirmed!.type).toBe('boolean');
+    expect(highlight.parameters.required).toEqual(['element_id']);
+    expect(s.session.system_prompt).toContain('confirmed: true');
+  });
+
+  it('prepares the agent for drift corrections: one sentence, no scolding, no navigating', () => {
+    expect(s.session.system_prompt).toMatch(/wandered/i);
+    expect(s.session.system_prompt).toMatch(/never navigate/i);
   });
 
   it('defaults to an English-native voice', () => {

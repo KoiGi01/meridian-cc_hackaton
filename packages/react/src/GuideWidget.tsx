@@ -17,6 +17,8 @@ interface Turn {
   text: string;
   /** Present on an ambiguous reply: the choices offered. */
   choices?: IntentMatch[];
+  /** Present when a destructive element is waiting for a yes. */
+  confirm?: IntentMatch;
 }
 
 const CAPTION_MS = 6000;
@@ -42,8 +44,19 @@ export function GuideWidget({
   placeholder = 'How do I…',
   zIndex = 2147483001,
 }: GuideWidgetProps) {
-  const { ask, guide, manifest, clear, voiceEnabled, voiceState, startVoice, stopVoice, sendText, onAgentEvent } =
-    useGuide();
+  const {
+    ask,
+    guide,
+    confirmGuide,
+    manifest,
+    clear,
+    voiceEnabled,
+    voiceState,
+    startVoice,
+    stopVoice,
+    sendText,
+    onAgentEvent,
+  } = useGuide();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState('');
@@ -97,8 +110,8 @@ export function GuideWidget({
   }, [turns, partial]);
 
   const say = useCallback(
-    (text: string, choices?: IntentMatch[]) =>
-      setTurns((t) => [...t, { role: 'agent', text, ...(choices ? { choices } : {}) }]),
+    (text: string, extra: Pick<Turn, 'choices' | 'confirm'> = {}) =>
+      setTurns((t) => [...t, { role: 'agent', text, ...extra }]),
     [],
   );
 
@@ -143,6 +156,17 @@ export function GuideWidget({
             const text = String(e.text ?? '');
             say(text);
             if (!openRef.current) showCaption(text);
+            break;
+          }
+          case 'drift': {
+            // The light already went out. If a live agent spoke the
+            // correction, its transcript arrives on its own; otherwise this
+            // is where the words go (text mode has full parity).
+            if ((e.kind === 'drift' || e.kind === 'lost') && !e.spoken) {
+              const text = String(e.text ?? '');
+              say(text);
+              if (!openRef.current) showCaption(text);
+            }
             break;
           }
           case 'mic.unavailable':
@@ -195,10 +219,28 @@ export function GuideWidget({
           say("I know what you mean, but I can't see it on this screen right now.");
         }
       } else if (res.status === 'ambiguous') {
-        say('Which of these do you mean?', res.candidates);
+        say('Which of these do you mean?', { choices: res.candidates });
+      } else if (res.status === 'needs-confirmation') {
+        say(`That one is marked as destructive (${purposeOf(res.match.elementId).replace(/\.$/, '')}). Do you want me to show it anyway?`, {
+          confirm: res.match,
+        });
       } else {
         say("I couldn't find anything for that. Try describing what you want to do.");
       }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const confirm = async (c: IntentMatch, yes: boolean) => {
+    if (!yes) {
+      say("Okay, I'll leave it.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const r = await confirmGuide(c.elementId);
+      say(r.status === 'resolved' ? purposeOf(c.elementId) : "I can't see that on this screen right now.");
     } finally {
       setBusy(false);
     }
@@ -313,6 +355,28 @@ export function GuideWidget({
                         {purposeOf(c.elementId)}
                       </button>
                     ))}
+                  </div>
+                )}
+                {t.confirm && (
+                  <div className="pt-chips">
+                    <button
+                      type="button"
+                      className="pt-chip"
+                      data-pointto-confirm="yes"
+                      onClick={() => confirm(t.confirm!, true)}
+                      disabled={busy}
+                    >
+                      Yes, show me
+                    </button>
+                    <button
+                      type="button"
+                      className="pt-chip"
+                      data-pointto-confirm="no"
+                      onClick={() => confirm(t.confirm!, false)}
+                      disabled={busy}
+                    >
+                      No
+                    </button>
                   </div>
                 )}
               </div>

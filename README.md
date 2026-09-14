@@ -8,9 +8,9 @@ Built for the [AssemblyAI Voice Agent Hackathon](https://lablab.ai). MIT license
 
 ## Status
 
-**Checkpoint 5 of 9 complete** — the scanner. `pointto-cli scan` opens your app in a headless browser, reads each screen's accessibility tree, and has Gemini describe every control. The demo app now runs on a **generated** manifest: 51 elements the scanner found in [Refine's admin app](https://github.com/refinedev/refine), labeled without anyone typing a word.
+**Checkpoint 6 of 9 complete** — drift detection, the part no tour library has. Ask where something is, get pointed at it, then wander off: the light goes out at once and the guide says one short sentence about where you are and where it lives. Come back and the light is waiting, unasked. Ignore it twice and it offers to start over instead of nagging. Destructive controls (logging out) get a "are you sure?" before they are ever lit.
 
-Voice is in: press the mic, say *"how do I add a courier?"*, and the app changes page, lights the button, and tells you what it does — from a control the scanner discovered on its own.
+The scanner (checkpoint 5) generated the manifest the demo runs on: 51 elements it found in [Refine's admin app](https://github.com/refinedev/refine), labeled by Gemini. Voice (checkpoint 4): press the mic, say *"how do I add a courier?"*, and the app changes page, lights the button, and tells you what it does.
 
 Text still works without voice, offline, with no API key. See [docs/QA-MANUAL.md](docs/QA-MANUAL.md) to test what exists today, and [BUILD-SPEC.md](BUILD-SPEC.md) for the full design.
 

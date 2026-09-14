@@ -19,6 +19,11 @@ export class ToolGate {
   private last: string | null = null;
   private queue: ToolResultFrame[] = [];
 
+  /** True while the agent is between turns — the only time it may be sent anything. */
+  get idle(): boolean {
+    return this.last === 'reply.done';
+  }
+
   onEvent(type: string, status?: string): void {
     this.last = type;
     if (type === 'reply.done' && status === 'interrupted') this.queue = [];
@@ -34,7 +39,7 @@ export class ToolGate {
 
   /** Results that may be sent now. Empty unless the agent is idle. */
   drain(): ToolResultFrame[] {
-    if (this.last !== 'reply.done') return [];
+    if (!this.idle) return [];
     const out = this.queue;
     this.queue = [];
     return out;

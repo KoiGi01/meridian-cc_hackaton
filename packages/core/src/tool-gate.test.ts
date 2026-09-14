@@ -61,4 +61,16 @@ describe('ToolGate', () => {
     g.add('c1', { error: 'no such element' }, true);
     expect(g.drain()[0]).toMatchObject({ call_id: 'c1', is_error: true });
   });
+
+  it('reports idle only while reply.done is the latest event', () => {
+    const g = new ToolGate();
+    expect(g.idle).toBe(false);
+    g.onEvent('reply.done', 'completed');
+    expect(g.idle).toBe(true);
+    g.onEvent('reply.started');
+    expect(g.idle).toBe(false);
+    g.onEvent('reply.done', 'completed');
+    g.onEvent('input.speech.started');
+    expect(g.idle).toBe(false);
+  });
 });

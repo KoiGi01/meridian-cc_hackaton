@@ -253,7 +253,7 @@
               "confidence": 0.3
             }
           ],
-          "destructive": false
+          "destructive": true
         },
         {
           "id": "app.search-by-store-id-e-mail-keyword",

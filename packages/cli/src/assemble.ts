@@ -24,6 +24,15 @@ function anchorsFor(el: ScannedRoute['elements'][number]): Anchor[] {
   return out;
 }
 
+/**
+ * Names that mean the action loses something: data, or the session. These
+ * get `destructive: true`, which makes the runtime ask before pointing
+ * (BUILD-SPEC 6). Word-bounded so "Deleted orders" (a filter) is not flagged.
+ */
+export function isDestructive(name: string): boolean {
+  return /\b(delete|remove|destroy|erase|log ?out|sign ?out|eliminar|borrar|cerrar sesi[oó]n)\b/i.test(name);
+}
+
 export async function assemble(
   routes: ScannedRoute[],
   labeler: Labeler,
@@ -110,7 +119,7 @@ export async function assemble(
         aliases: l.aliases,
         ...(l.category ? { category: l.category } : {}),
         anchors: anchorsFor(e),
-        destructive: /\b(delete|remove|destroy|erase|eliminar|borrar)\b/i.test(e.runtimeName || e.text),
+        destructive: isDestructive(e.runtimeName || e.text),
       };
     });
 
