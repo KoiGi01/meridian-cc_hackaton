@@ -99,6 +99,12 @@ describe('buildSessionUpdate', () => {
     expect(s.session.system_prompt).toMatch(/never (click|perform)/i);
   });
 
+  it('tells the agent that highlighting is not doing: the user still clicks', () => {
+    // Seen live: after lighting Logout on request, the agent said "You have
+    // been logged out". It had not logged anyone out.
+    expect(s.session.system_prompt).toMatch(/never say the action has been done/i);
+  });
+
   it('flags destructive elements so the agent asks for confirmation', () => {
     expect(s.session.system_prompt).toMatch(/stores\.delete[^\n]*DESTRUCTIVE/);
   });

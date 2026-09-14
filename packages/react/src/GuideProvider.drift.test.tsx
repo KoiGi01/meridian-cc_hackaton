@@ -375,7 +375,7 @@ describe('drift detection', () => {
       await act(async () => el('[data-pointto-trigger]')!.click());
       await typeAsk('log me out');
       await waitFor(() => expect(el('[data-pointto-confirm="no"]')).not.toBeNull());
-      expect(transcript()).toMatch(/destructive/i);
+      expect(transcript()).toMatch(/destructive \(Logs out\)\./);
       expect(cutout()).toBeNull();
 
       await act(async () => el('[data-pointto-confirm="no"]')!.click());

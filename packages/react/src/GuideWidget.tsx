@@ -221,7 +221,7 @@ export function GuideWidget({
       } else if (res.status === 'ambiguous') {
         say('Which of these do you mean?', { choices: res.candidates });
       } else if (res.status === 'needs-confirmation') {
-        say(`That one is marked as destructive (${purposeOf(res.match.elementId)}). Do you want me to show it anyway?`, {
+        say(`That one is marked as destructive (${purposeOf(res.match.elementId).replace(/\.$/, '')}). Do you want me to show it anyway?`, {
           confirm: res.match,
         });
       } else {
