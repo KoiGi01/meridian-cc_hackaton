@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { Manifest } from 'pointto-core';
 import { useEffect, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -90,7 +90,7 @@ let currentPath: () => string;
  * renders its own button, and links navigate in a bubbling click handler —
  * after our capture listener, like React Router does.
  */
-function App({ voice }: { voice?: boolean }) {
+function App({ voice, widget = false }: { voice?: boolean; widget?: boolean }) {
   const [path, setPath] = useState('/');
   const pathRef = { current: path };
   currentPath = () => pathRef.current;
@@ -106,7 +106,7 @@ function App({ voice }: { voice?: boolean }) {
     <GuideProvider
       manifest={manifest}
       router={router}
-      widget={false}
+      widget={widget}
       {...(voice ? { voice: { tokenEndpoint: 'http://localhost:8787/api/voice/token' } } : {})}
     >
       <Probe />
@@ -343,6 +343,50 @@ describe('drift detection', () => {
       expect(cutout()).toBeNull();
       expect(drifts()).toEqual([]);
       expect(sessions[0]!.say).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('in the widget', () => {
+    const el = (sel: string) => shadow()!.querySelector(sel) as HTMLElement | null;
+    const transcript = () => el('[data-pointto-transcript]')?.textContent ?? '';
+
+    async function typeAsk(q: string) {
+      const input = el('input')! as HTMLInputElement;
+      await act(async () => {
+        fireEvent.change(input, { target: { value: q } });
+        fireEvent.submit(input.closest('form')!);
+      });
+      // ask() navigates and polls for the button; let React flush meanwhile.
+      await settle(new Promise((r) => setTimeout(r, 500)));
+    }
+
+    it('shows the correction as an agent turn in text mode', async () => {
+      render(<App widget />);
+      await act(async () => el('[data-pointto-trigger]')!.click());
+      await typeAsk('add a store');
+      await waitFor(() => expect(cutout()).not.toBeNull());
+      await click('nav-orders');
+      await waitFor(() => expect(transcript()).toMatch(/You're on \/orders now/));
+      expect(transcript()).toContain('Stores');
+    });
+
+    it('asks before a destructive element; No leaves the light off, Yes lights it', async () => {
+      render(<App widget />);
+      await act(async () => el('[data-pointto-trigger]')!.click());
+      await typeAsk('log me out');
+      await waitFor(() => expect(el('[data-pointto-confirm="no"]')).not.toBeNull());
+      expect(transcript()).toMatch(/destructive/i);
+      expect(cutout()).toBeNull();
+
+      await act(async () => el('[data-pointto-confirm="no"]')!.click());
+      expect(cutout()).toBeNull();
+      expect(transcript()).toMatch(/leave it/i);
+
+      await typeAsk('log me out');
+      await waitFor(() => expect(el('[data-pointto-confirm="yes"]')).not.toBeNull());
+      await act(async () => el('[data-pointto-confirm="yes"]')!.click());
+      await waitFor(() => expect(cutout()).not.toBeNull());
+      expect(transcript()).toContain('Logs out');
     });
   });
 });
