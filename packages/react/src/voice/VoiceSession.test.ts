@@ -168,6 +168,44 @@ describe('VoiceSession', () => {
     expect(String(ws.sent.at(-1)!.instructions)).toContain('how do I add a store');
   });
 
+  describe('say', () => {
+    it('speaks on demand right away when the agent is idle', async () => {
+      const s = make();
+      const ws = await started(s);
+      ws.serverSends({ type: 'session.ready' });
+      ws.serverSends({ type: 'reply.done', status: 'completed' });
+      s.say('The user went to Orders.');
+      expect(ws.sent.at(-1)).toEqual({ type: 'reply.create', instructions: 'The user went to Orders.' });
+    });
+
+    it('holds the instruction while the agent is talking and sends it after the tool results', async () => {
+      const onToolCall = vi.fn(async () => ({ ok: true }));
+      const s = make({ onToolCall });
+      const ws = await started(s);
+      ws.serverSends({ type: 'session.ready' });
+      ws.serverSends({ type: 'reply.started' });
+      ws.serverSends({ type: 'tool.call', call_id: 'c1', name: 'highlight', arguments: { element_id: 'x' } });
+      await vi.waitFor(() => expect(onToolCall).toHaveBeenCalled());
+      s.say('correction');
+      expect(ws.types()).not.toContain('reply.create');
+
+      ws.serverSends({ type: 'reply.done', status: 'completed' });
+      await vi.waitFor(() => expect(ws.types()).toContain('reply.create'));
+      const t = ws.types();
+      expect(t.indexOf('tool.result')).toBeLessThan(t.indexOf('reply.create'));
+    });
+
+    it('drops a held instruction when the user interrupted — they are talking, not wandering', async () => {
+      const s = make();
+      const ws = await started(s);
+      ws.serverSends({ type: 'session.ready' });
+      ws.serverSends({ type: 'reply.started' });
+      s.say('correction');
+      ws.serverSends({ type: 'reply.done', status: 'interrupted' });
+      expect(ws.types()).not.toContain('reply.create');
+    });
+  });
+
   it('ends the session cleanly and releases the microphone', async () => {
     const s = make();
     const ws = await started(s);

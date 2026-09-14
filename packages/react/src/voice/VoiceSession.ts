@@ -43,6 +43,10 @@ export class VoiceSession {
   private capture: Capture | null = null;
   private playback: Playback | null = null;
   private readonly gate = new ToolGate();
+  // Corrections waiting for the agent to finish its sentence. Same rule as
+  // tool results: the API is only spoken to when reply.done is the latest
+  // event, and nothing is documented about reply.create mid-reply.
+  private pendingInstructions: string[] = [];
   private readonly audio: NonNullable<VoiceSessionOptions['audio']>;
 
   constructor(private readonly opts: VoiceSessionOptions) {
@@ -101,6 +105,16 @@ export class VoiceSession {
     });
   }
 
+  /**
+   * Makes the agent speak now, from a one-shot instruction (drift corrections).
+   * Held until the agent is idle; dropped if the user barged in meanwhile —
+   * they are talking to us, not wandering.
+   */
+  say(instructions: string): void {
+    this.pendingInstructions.push(instructions);
+    this.flushPending();
+  }
+
   stop(): void {
     if (this.state === 'ended' || this.state === 'error') return;
     // session.end avoids paying for the 30 s resume window.
@@ -134,9 +148,12 @@ export class VoiceSession {
       case 'reply.done': {
         const status = ev.status as string | undefined;
         this.gate.onEvent(ev.type, status);
-        if (status === 'interrupted') this.playback?.flush();
+        if (status === 'interrupted') {
+          this.playback?.flush();
+          this.pendingInstructions = [];
+        }
         if (this.capture) this.setState('listening');
-        this.flushTools();
+        this.flushPending();
         break;
       }
       case 'tool.call': {
@@ -179,11 +196,16 @@ export class VoiceSession {
       this.gate.add(callId, { error: (e as Error).message }, true);
     }
     // May already be idle if reply.done fired while the tool was running.
-    this.flushTools();
+    this.flushPending();
   }
 
-  private flushTools(): void {
+  /** Tool results first, then anything we want said. Only while idle. */
+  private flushPending(): void {
     for (const frame of this.gate.drain()) this.send({ type: 'tool.result', ...frame });
+    if (!this.gate.idle) return;
+    const instructions = this.pendingInstructions;
+    this.pendingInstructions = [];
+    for (const i of instructions) this.send({ type: 'reply.create', instructions: i });
   }
 
   private send(frame: Record<string, unknown>): void {
