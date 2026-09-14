@@ -14,3 +14,5 @@ export { buildSessionUpdate } from './agent-session';
 export type { SessionUpdate, SessionOptions, ToolDefinition } from './agent-session';
 export { ToolGate } from './tool-gate';
 export type { ToolResultFrame } from './tool-gate';
+export { DriftTracker, MAX_CORRECTIONS, QUEST_TTL_MS, correctionInstruction, correctionText } from './drift';
+export type { CorrectionContext, LitRole, Quest } from './drift';
