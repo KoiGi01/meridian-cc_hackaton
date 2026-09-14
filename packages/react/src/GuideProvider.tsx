@@ -25,6 +25,7 @@ import { GuideWidget, type GuideWidgetProps } from './GuideWidget';
 import { createHistoryRouter, type RouterAdapter } from './router';
 import { createShadowHost } from './shadow-root';
 import { SpotlightOverlay } from './SpotlightOverlay';
+import { createToolRunner, type GuideResult } from './tools';
 import { VoiceSession, type AgentEvent, type VoiceState } from './voice/VoiceSession';
 
 export interface GuideOptions {
@@ -34,10 +35,7 @@ export interface GuideOptions {
   dimOpacity?: number;
 }
 
-export type GuideResult =
-  | { status: 'resolved'; elementId: string; navigated: boolean }
-  | { status: 'not-found'; elementId: string; navigated: boolean }
-  | { status: 'unknown-id'; elementId: string };
+export type { GuideResult } from './tools';
 
 export interface VoiceOptions {
   /** Our token server, e.g. http://localhost:8787/api/voice/token */
@@ -264,50 +262,18 @@ export function GuideProvider({
     };
   }, []);
 
-  /**
-   * The agent's tools. Every result is a plain value; errors are thrown with a
-   * message specific enough for the model to recover (name what failed and
-   * what to ask for next).
-   */
-  const runTool = useCallback(
-    async (name: string, args: Record<string, unknown>): Promise<unknown> => {
-      if (!manifest) throw new Error('No manifest is loaded, so nothing can be highlighted.');
-
-      if (name === 'highlight') {
-        const id = String(args.element_id ?? '');
-        const entry = findElementById(manifest, id);
-        if (!entry) {
-          throw new Error(`No element with id "${id}". Pick an id from the catalog, or ask the user to describe it differently.`);
-        }
-        const r = await guideRef.current(id);
-        if (r.status === 'resolved') {
-          return { status: 'highlighted', element_id: id, navigated: r.navigated, purpose: entry.purpose };
-        }
-        throw new Error(
-          `Element "${id}" exists but is not visible on the current screen${
-            r.status === 'not-found' && r.navigated ? ' even after navigating' : ''
-          }. Tell the user you could not find it right now.`,
-        );
-      }
-
-      if (name === 'navigate') {
-        const path = String(args.path ?? '');
-        if (!manifest.routes.some((r) => r.path === path)) {
-          throw new Error(`Unknown path "${path}". Use a path from the catalog.`);
-        }
-        routerRef.current.navigate(path);
-        return { ok: true, path };
-      }
-
-      if (name === 'get_current_context') {
-        const path = routerRef.current.currentPath();
-        const route = manifest.routes.find((r) => r.path === path);
-        const visible = (route?.elements ?? []).filter((e) => resolveElement(e).status === 'resolved').map((e) => e.id);
-        return { path, screen: route?.label ?? null, visible_element_ids: visible };
-      }
-
-      throw new Error(`Unknown tool "${name}".`);
-    },
+  const runTool = useMemo(
+    () =>
+      manifest
+        ? createToolRunner({
+            manifest,
+            guide: (id) => guideRef.current(id),
+            router: routerRef.current,
+            awaitInteraction: () => Promise.reject(new Error('await_interaction is not available yet.')),
+          })
+        : async () => {
+            throw new Error('No manifest is loaded, so nothing can be highlighted.');
+          },
     [manifest],
   );
 
