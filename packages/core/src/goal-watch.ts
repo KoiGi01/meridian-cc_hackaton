@@ -42,6 +42,7 @@ export function watchGoal(opts: GoalWatchOptions): () => void {
   let target = opts.target;
   let stopped = false;
   let frame: number | null = null;
+  let scheduled = false;
   let inFlight = false;
 
   const stop = () => {
@@ -61,7 +62,6 @@ export function watchGoal(opts: GoalWatchOptions): () => void {
   const routeLeft = () => !!goalPath && goalPath !== '*' && currentPath() !== goalPath;
 
   const check = async () => {
-    frame = null;
     if (stopped || inFlight) return;
     if (routeLeft()) return emit({ kind: 'drift', path: currentPath() });
     if (target.isConnected) return;
@@ -83,8 +83,17 @@ export function watchGoal(opts: GoalWatchOptions): () => void {
     }
   };
 
+  // A flag rather than the frame handle: a test may stub rAF to run the
+  // callback synchronously, and then the handle is assigned after the
+  // callback has already cleared it.
   const schedule = () => {
-    if (frame === null) frame = requestAnimationFrame(() => void check());
+    if (scheduled) return;
+    scheduled = true;
+    frame = requestAnimationFrame(() => {
+      scheduled = false;
+      frame = null;
+      void check();
+    });
   };
 
   const onClick = (e: Event) => {
