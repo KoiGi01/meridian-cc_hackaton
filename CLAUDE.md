@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Orientation
 
-Read [BUILD-SPEC.md](BUILD-SPEC.md) before touching code — it is the design document and the build order (§9). [docs/superpowers/specs/2026-09-11-pointto-decisions.md](docs/superpowers/specs/2026-09-11-pointto-decisions.md) closes its open questions. Each phase has a plan in `docs/superpowers/plans/`. Progress is tracked in the "Status" section of [README.md](README.md) and in [docs/QA-MANUAL.md](docs/QA-MANUAL.md), which gets a new checkpoint section every time a phase lands.
+Read [BUILD-SPEC.md](BUILD-SPEC.md) before touching code — it is the design document and the build order (§9). [docs/superpowers/specs/2026-09-11-pointto-decisions.md](docs/superpowers/specs/2026-09-11-pointto-decisions.md) closes its open questions. Each phase has a plan in `docs/superpowers/plans/`. Progress is tracked in the "Status" section of [README.md](README.md) and in [docs/QA-MANUAL.md](docs/QA-MANUAL.md), which gets a new checkpoint section every time a phase lands. [docs/HANDOFF.md](docs/HANDOFF.md) holds what this file does not: current state, decisions made in conversation, open items, and what to do next. Read it at the start of a session.
 
 The planning doc [proyecto-guia-de-voz.md](proyecto-guia-de-voz.md) is in Spanish and the user works in Spanish; match that language for product discussion unless asked otherwise.
 
@@ -18,10 +18,13 @@ pnpm test                                 # vitest, all packages
 pnpm vitest run packages/core             # one package
 pnpm vitest run packages/core/src/resolve.test.ts   # one file
 pnpm build                                # tsup, ESM + CJS + d.ts for packages/*
+cd packages/core && npx tsc --noEmit -p .  # typecheck one package (vitest does not typecheck); same for react, cli
 pnpm --filter playground dev              # dev harness, http://localhost:5173
 pnpm --filter finefoods-antd dev:pointto  # vendored Refine demo, http://localhost:5190
 pnpm dev:server                           # token server, http://localhost:8787 — reads ASSEMBLYAI_API_KEY from .env
 ```
+
+The root `pnpm typecheck` (`tsc -b`) is broken: there is no root `tsconfig.json`. `server/` fails to typecheck because `@types/node` is missing; it runs fine under Node's type-stripping.
 
 Use `dev:pointto`, never the demo app's own `dev` — `refine dev` hangs on Windows. `dev:pointto` has a `predev` hook that builds the packages first, because the demo app consumes `dist/` and `dist/` is gitignored.
 
@@ -29,6 +32,7 @@ Use `dev:pointto`, never the demo app's own `dev` — `refine dev` hangs on Wind
 
 ```
 packages/core     manifest types + validator, geometry, rect tracking, resolver. NO React — enforced by no-react.test.ts.
+                  core and react ship to the browser: no API-key env var names or Bearer headers — enforced by no-secrets.test.ts.
 packages/react    published as `pointto`. GuideProvider / useGuide, GuideWidget, SpotlightOverlay, voice/VoiceSession.
 server/           token minting + event log. The ONLY place the AssemblyAI key is used. Node 22+ type-stripping, no deps.
 packages/cli      published as `pointto-cli`. Playwright scanner + labeler. Node-only; the only package allowed to hold Playwright or an LLM key.
@@ -39,7 +43,9 @@ docs/             QA manual, specs, plans, screenshots.
 
 ## How the pieces fit
 
-`GuideProvider` owns one `target: HTMLElement | null`. `spotlightId(id)` looks the id up in the manifest, runs `resolveElement` from core, sets the target, and returns a `ResolveOutcome` — a value, never a throw, because the voice agent will call this as a tool and must be able to say "I can't find that" out loud. `SpotlightOverlay` scrolls the target into view, tracks its rect via `observeRect`, computes a cutout, and renders a single fixed `div` whose 9999px `box-shadow` is the dim. The overlay is `pointer-events: none`; the host UI is never blocked.
+`GuideProvider` owns one `target: HTMLElement | null`. `spotlightId(id)` looks the id up in the manifest, runs `resolveElement` from core, sets the target, and returns a `ResolveOutcome` — a value, never a throw, because the voice agent will call this as a tool and must be able to say "I can't find that" out loud. `SpotlightOverlay` scrolls the target into view, tracks its rect via `observeRect`, computes a cutout, and renders a single fixed `div` whose 9999px `box-shadow` is the dim. The overlay is `pointer-events: none`; the host UI is never blocked. Widget and overlay render inside an open shadow root on a host element marked `[data-pointto-root]` (`shadow-root.ts`); when driving the UI from Playwright, query through `document.querySelector('[data-pointto-root]').shadowRoot`.
+
+Typed questions go through the `IntentResolver` interface in core (`intent.ts`); the shipped implementation is lexical and offline (aliases, purpose, id, route), so text mode needs no API key. An empty result means "nothing plausible" and the widget has to say so. It must not pick something anyway.
 
 **Drift (Phase 6).** `DriftTracker` (core, pure) holds the *quest*: the goal id, its route, how many corrections were spoken, and whether what is lit is the goal, a *waypoint* (a global element lit while the goal is pending — the agent showing the way back) or nothing. `watchGoal` (core, DOM) watches one lit target: capture-phase passive click listener + MutationObserver + route check on the next frame, and reports `reached` / `drift` / `lost` / `replaced` as values; it subsumed the old re-resolve-on-detach effect. The provider glues them: light changes are local and immediate; the correction goes through `VoiceSession.say()` (`reply.create { instructions }`, queued until `reply.done`) when a session is live, or out as a `{ type: 'drift', text, spoken: false }` event the widget renders otherwise. Classification is by **outcome** (route + target), never by guessing what a clicked element does — the manifest has no sidebar-link→route mapping. `guide()` disarms the watcher synchronously before its own navigation. Tool dispatch lives in `tools.ts` (`createToolRunner`), with the runtime `destructive` gate (`confirmed: true`) and `await_interaction`.
 
